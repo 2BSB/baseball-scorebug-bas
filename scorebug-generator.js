@@ -6,6 +6,7 @@
  *  1. 右下角原「四个大数字圆圈」模块取消，改成 B / S 上下两行独立记数（圆点 + 数字）。
  *  2. 队伍名称所在行的底色、文字色，以及上垒菱形高亮色均可在生成时自定义（默认上垒为纯白）。
  *  3. 位置模块支持左上 / 右上 / 左下 / 右下四种贴角预设，右下角会按宽度自动换算 Y，不越界。
+ *  4. 右下角 B / S 两行底色统一为可配置的「球数行底色」（默认纯黑 #0B0B0C），空点统一暗灰。
  */
 (function (root, factory) {
   var api = factory();
@@ -27,8 +28,8 @@
     baseOff:     0x2B2C36,
     baseEdge:    0xC9CFD8,
     outOff:      0x3D3C47,
-    ballOff:     0x585E6C,   // 深色 B 行上的空点
-    strikeOff:   0x8FB0DE,   // 蓝色 S 行上的空点
+    ballOff:     0x585E6C,   // B / S 黑色行上的空点（统一暗灰，避免与点亮白点混淆）
+    strikeOff:   0x585E6C,   // 好球行改黑底后与坏球行一致
     countOn:     0xFFFFFF,   // 球数点亮统一用纯白
     arrowOff:    0x55565F,
     arrowOn:     0xFFFFFF,
@@ -55,6 +56,7 @@
     awayFg: '#FFFFFF',   // 客队名称 / 比分文字色
     homeBg: '#2C51C2',   // 主队名称行底色（可变色）
     homeFg: '#FFFFFF',   // 主队名称 / 比分文字色
+    countBg: '#0B0B0C',  // 右下角 B / S 球数行底色（两行统一，默认黑色）
     baseOn: '#FFFFFF',   // 上垒菱形高亮色（纯白更清楚）
     fontScale: 100,      // 全部文字字号百分比
     nameScoreScale: 100, // 队名 / 比分字号百分比（两位数比分防挤）
@@ -144,8 +146,8 @@
     { id: 'pBg',         d: roundRect(4, 4, 512, 152, 3),                 color: COLOR.bg,          z: 2 },
     { id: 'pAwayRow',    d: rect(5, 4, 167, 76),                           color: COLOR.bg,          ck: 'cAwayBg', z: 3 },
     { id: 'pHomeRow',    d: bottomRoundRect(5, 83, 167, 72, 4),           color: COLOR.blue,        ck: 'cHomeBg', z: 3 },
-    { id: 'pRowB',       d: rect(350, 83, 165, 36),                        color: COLOR.darkRight,   z: 3 },
-    { id: 'pRowS',       d: bottomRoundRect(350, 119, 165, 36, 4),         color: COLOR.blue,        z: 3 },
+    { id: 'pRowB',       d: rect(350, 83, 165, 36),                        color: COLOR.bg,          ck: 'cCountBg', z: 3 },
+    { id: 'pRowS',       d: bottomRoundRect(350, 119, 165, 36, 4),         color: COLOR.bg,          ck: 'cCountBg', z: 3 },
     { id: 'pLines',      d: join(rect(173, 4, 3, 152), rect(346, 4, 3, 152), rect(5, 80, 167, 2), rect(350, 80, 165, 2), rect(350, 118, 165, 1.5)), color: COLOR.line, z: 4 },
     { id: 'pMidLine',    d: rect(238, 8, 2, 144),                           color: COLOR.midLine,     z: 4 },
     { id: 'pBaseOff',    d: join(diamond(292, 45, 15), diamond(268, 68, 15), diamond(316, 68, 15)), color: COLOR.baseOff, z: 5, bw: 1, bc: 0x3E4150 },
@@ -374,6 +376,7 @@
       cAwayFg: parseColor(o.awayFg, 0xFFFFFF),
       cHomeBg: parseColor(o.homeBg, 0x2C51C2),
       cHomeFg: parseColor(o.homeFg, 0xFFFFFF),
+      cCountBg: parseColor(o.countBg, 0x0B0B0C),
       cBaseOn: parseColor(o.baseOn, 0xFFFFFF),
       fontScale: clampScale(o.fontScale, 100),
       nameScoreScale: clampScale(o.nameScoreScale, 100),

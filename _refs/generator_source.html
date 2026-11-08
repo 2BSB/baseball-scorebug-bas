@@ -214,7 +214,7 @@
           </div>
           <div class="ref">
             <img src="reference-scoreboard.png" alt="参考图">
-            <p>参考图（原版）：ARI 4 / LAD 4、5 局下、满垒、0 出局、1-2 球数。<br>新版：右下角 B / S 两行记数、上垒菱形纯白。</p>
+            <p>参考图（原版）：ARI 4 / LAD 4、5 局下、满垒、0 出局、1-2 球数。<br>新版：右下角 B / S 两行统一黑底记数、上垒菱形纯白。</p>
           </div>
           </div><!-- /video-only -->
 
@@ -255,14 +255,15 @@
             </div>
 
             <div class="fold" data-key="colors">
-              <button class="fold-head" type="button" aria-expanded="false">配色（队伍底色 / 上垒高亮） <span class="chev">▾</span></button>
+              <button class="fold-head" type="button" aria-expanded="false">配色（队伍底色 / 球数行 / 上垒高亮） <span class="chev">▾</span></button>
               <div class="fold-body">
                 <div class="color-row"><label>客队行底色</label><input type="color" id="awayBg" value="#0b0b0c"><span class="swatch" id="vAwayBg">#0B0B0C</span></div>
                 <div class="color-row"><label>客队文字色</label><input type="color" id="awayFg" value="#ffffff"><span class="swatch" id="vAwayFg">#FFFFFF</span></div>
                 <div class="color-row"><label>主队行底色</label><input type="color" id="homeBg" value="#2c51c2"><span class="swatch" id="vHomeBg">#2C51C2</span></div>
                 <div class="color-row"><label>主队文字色</label><input type="color" id="homeFg" value="#ffffff"><span class="swatch" id="vHomeFg">#FFFFFF</span></div>
+                <div class="color-row"><label>球数行底色</label><input type="color" id="countBg" value="#0b0b0c"><span class="swatch" id="vCountBg">#0B0B0C</span></div>
                 <div class="color-row"><label>上垒菱形色</label><input type="color" id="baseOn" value="#ffffff"><span class="swatch" id="vBaseOn">#FFFFFF</span></div>
-                <p class="hint">队伍名称所在行的底色与文字色可分别调整；有跑者上垒时菱形使用「上垒菱形色」，默认纯白对比最清楚。配色在生成时写入 <code>fillColor / color</code>，时间轴事件里保持不变。</p>
+                <p class="hint">队伍名称所在行的底色与文字色可分别调整；右下角 <b>B / S 两行共用「球数行底色」，默认纯黑</b>（原好球行是蓝色），未点亮的空点在黑底上统一为暗灰、点亮后为纯白；有跑者上垒时菱形使用「上垒菱形色」，默认纯白对比最清楚。配色在生成时写入 <code>fillColor / color</code>，时间轴事件里保持不变。</p>
               </div>
             </div>
 
@@ -297,7 +298,7 @@
                 <div class="row"><label>出局数 O</label><select id="outs"><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
                 <div class="row"><label>坏球数 B</label><select id="balls"><option>0</option><option selected>1</option><option>2</option><option>3</option></select></div>
                 <div class="row"><label>好球数 S</label><select id="strikes"><option>0</option><option>1</option><option selected>2</option></select></div>
-                <p class="hint">原右下角 ABS 挑战次数圆圈模块已取消，改为「三坏两好」：<b>B</b> 行 3 颗圆点、<b>S</b> 行 2 颗圆点，两行各自独立记数并显示当前数字；右上角保留「B-S」球数总览。</p>
+                <p class="hint">原右下角 ABS 挑战次数圆圈模块已取消，改为「三坏两好」：<b>B</b> 行 3 颗圆点、<b>S</b> 行 2 颗圆点，两行各自独立记数并显示当前数字；两行底色统一为黑色（可在「配色」里改），右上角保留「B-S」球数总览。</p>
               </div>
             </div>
 
@@ -410,7 +411,7 @@
                 <li>左侧上下两行：客队 / 主队名称与比分，底色与文字色均可在左栏配色分组调整。</li>
                 <li>中左：局数 + 上下三角，白色三角表示当前半局。</li>
                 <li>中右：三个菱形为一、二、三垒（有人时纯白高亮）；下方三个小圆点为出局数。</li>
-                <li>右上：「坏球-好球」球数总览；<b>右下角独立两行</b>：上排深色 <b>B</b> 三颗（三坏）、下排蓝色 <b>S</b> 两颗（两好），白色圆点逐球点亮并显示当前数字，原 ABS 挑战次数圆圈已取消。</li>
+                <li>右上：「坏球-好球」球数总览；<b>右下角独立两行</b>：上排 <b>B</b> 三颗（三坏）、下排 <b>S</b> 两颗（两好），两行均为黑色底、未点亮空点为暗灰，白色圆点逐球点亮并显示当前数字，原 ABS 挑战次数圆圈已取消。</li>
                 <li>位置预设含右下角贴边（留白 2%），X/Y 按宽度与 520:163 比例自动换算；「尺寸预设」可把整块记分条缩到 10%～24% 的小尺寸。</li>
                 <li>「字体大小」分组与舞台工具栏的「字号」滑杆可调全部文字或只调队名 / 比分；两位数比分默认自动缩小留间隙，<code>fontSize</code> 按时间轴里最宽的队名 / 比分固化。</li>
               </ul>
@@ -430,7 +431,7 @@
               使用方法：复制上方代码 → 在支持 BAS 的 B 站播放器「高级弹幕 / 代码弹幕」编辑器中粘贴并运行（需相应投稿权限）；或点「在官方试验室打开」直接调试。<br>
               无时间轴事件时输出静态记分条，所有元素 <code>duration</code> 相同、常驻画面；有事件时按<b>视频绝对秒</b>记录，生成时按「投放时间」换算成弹幕相对秒，用 <code>then set</code> 依次更新文字与指示灯。<br>
               左栏「在线视频 · 时间同步」可嵌入 B 站在线播放器（或载入本地视频文件）对照画面手工打点，时间轴刻度与事件表分别在右栏与左栏，支持刻度跳转、快捷事件、JSON 导入导出；示例视频画面无记分板，内置时间轴仅为演示数据。<br>
-              右下角 B / S 两行记数、队伍行配色（写入 <code>fillColor / color</code>）、四角定位（按宽度换算 X/Y 百分比）与字号（写入 <code>fontSize</code>，按时间轴最宽状态固化）都会在生成时固化到脚本里；颜色与字号不支持在时间轴中途切换（BAS 的 <code>path</code> 不能在 <code>set</code> 中改 <code>fillColor</code>）。
+              右下角 B / S 两行黑底记数与「球数行底色」、队伍行配色（写入 <code>fillColor / color</code>）、四角定位（按宽度换算 X/Y 百分比）与字号（写入 <code>fontSize</code>，按时间轴最宽状态固化）都会在生成时固化到脚本里；颜色与字号不支持在时间轴中途切换（BAS 的 <code>path</code> 不能在 <code>set</code> 中改 <code>fillColor</code>）。
             </div>
           </div>
         </div>
@@ -451,7 +452,7 @@
   var els = {};
   ['awayName','awayScore','homeName','homeScore','inning','outs','balls','strikes',
    'b1','b2','b3','widthPct','xPct','yPct','anchor','duration','eventRows','previewTime',
-   'awayBg','awayFg','homeBg','homeFg','baseOn',
+   'awayBg','awayFg','homeBg','homeFg','countBg','baseOn',
    'videoUrl','videoMeta','videoOffset','videoDuration','videoTime','videoStatus',
    'playerBox','stageHint','playerMode','followVideo','timelineBar','cueList',
    'currentState','quickTime','quickField','quickValue','localVideoFile','timelineFile',
@@ -459,7 +460,7 @@
    'sizeQuick','vSizeQuick','fontQuick','vFontQuick','fontScale','vFontScale',
    'nameScoreScale','vNameScoreScale','autoFit','fontInfo',
    'showVideo','videoBrightness','vBrightness','overlayTag',
-   'vWidth','vX','vY','vAwayBg','vAwayFg','vHomeBg','vHomeFg','vBaseOn','posInfo',
+   'vWidth','vX','vY','vAwayBg','vAwayFg','vHomeBg','vHomeFg','vCountBg','vBaseOn','posInfo',
    'defCount','codeInfo','stageTag','valueHint'].forEach(function(id){ els[id] = document.getElementById(id); });
 
   /* 播放器状态 */
@@ -487,7 +488,7 @@
       widthPct: num('widthPct'), xPct: num('xPct'), yPct: num('yPct'),
       anchor: val('anchor'), marginPct: 2, duration: val('duration'),
       awayBg: val('awayBg'), awayFg: val('awayFg'),
-      homeBg: val('homeBg'), homeFg: val('homeFg'), baseOn: val('baseOn'),
+      homeBg: val('homeBg'), homeFg: val('homeFg'), countBg: val('countBg'), baseOn: val('baseOn'),
       fontScale: num('fontScale'), nameScoreScale: num('nameScoreScale'),
       autoFit: els.autoFit.checked
     };
@@ -879,7 +880,7 @@
       els.xPct.value = Math.round(pos.x);
       els.yPct.value = Math.round(pos.y);
     }
-    ['awayBg','awayFg','homeBg','homeFg','baseOn'].forEach(function(k){
+    ['awayBg','awayFg','homeBg','homeFg','countBg','baseOn'].forEach(function(k){
       var sw = els['v' + k.charAt(0).toUpperCase() + k.slice(1)];
       if (sw) sw.textContent = String(val(k)).toUpperCase();
     });

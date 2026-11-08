@@ -53,7 +53,7 @@ def path pRowB {
     height = 28.978%
     x = 46%
     y = 69.022%
-    fillColor = 0x191B1F
+    fillColor = 0x0B0B0C
     zIndex = 3
     duration = 2h
 }
@@ -65,7 +65,7 @@ def path pRowS {
     height = 28.978%
     x = 46%
     y = 69.022%
-    fillColor = 0x2C51C2
+    fillColor = 0x0B0B0C
     zIndex = 3
     duration = 2h
 }
@@ -139,7 +139,7 @@ def path pStrikeOff {
     height = 28.978%
     x = 46%
     y = 69.022%
-    fillColor = 0x8FB0DE
+    fillColor = 0x585E6C
     zIndex = 5
     duration = 2h
 }

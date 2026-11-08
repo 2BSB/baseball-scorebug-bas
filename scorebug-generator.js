@@ -33,8 +33,7 @@
     countOn:     0xFFFFFF,   // 球数点亮统一用纯白
     arrowOff:    0x55565F,
     arrowOn:     0xFFFFFF,
-    white:       0xFFFFFF,
-    blueWhite:   0xDCEBFF
+    white:       0xFFFFFF
   };
 
   var DEFAULT_STATE = {
@@ -180,7 +179,7 @@
     { id: 'tHomeScore',  x: 158, y: 122, ax: 1,   size: 52, color: COLOR.white,     ck: 'cHomeFg', get: function (s) { return String(s.homeScore); } },
     { id: 'tInning',     x: 205, y: 82,  ax: 0.5, size: 54, color: COLOR.white,     get: function (s) { return String(s.inning); } },
     { id: 'tCount',      x: 432, y: 41,  ax: 0.5, size: 50, color: COLOR.white,     get: function (s) { return s.balls + '-' + s.strikes; } },
-    { id: 'tBallLabel',  x: 358, y: 101, ax: 0,   size: 27, color: COLOR.blueWhite, get: function () { return 'B'; } },
+    { id: 'tBallLabel',  x: 358, y: 101, ax: 0,   size: 27, color: COLOR.white,     get: function () { return 'B'; } },
     { id: 'tStrikeLabel',x: 358, y: 137, ax: 0,   size: 27, color: COLOR.white,     get: function () { return 'S'; } },
     { id: 'tBallNum',    x: 502, y: 101, ax: 1,   size: 30, color: COLOR.white,     get: function (s) { return String(s.balls); } },
     { id: 'tStrikeNum',  x: 502, y: 137, ax: 1,   size: 30, color: COLOR.white,     get: function (s) { return String(s.strikes); } }

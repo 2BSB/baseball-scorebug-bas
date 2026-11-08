@@ -429,7 +429,7 @@ def text tBallLabel {
     anchorY = 0.5
     fontSize = 2.7%
     fontFamily = "Arial"
-    color = 0xDCEBFF
+    color = 0xFFFFFF
     bold = 1
     textShadow = 0
     zIndex = 9

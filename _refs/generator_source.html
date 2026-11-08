@@ -187,25 +187,25 @@
         <div class="pv-side">
           <div class="video-only">
           <div class="compact-title">在线视频 · 时间同步</div>
-          <div class="row"><label>B 站链接</label><input type="text" id="videoUrl" value="https://www.bilibili.com/video/BV19f4H6xE9B/" placeholder="https://www.bilibili.com/video/BV..."></div>
+          <div class="row"><label>B 站链接</label><input type="text" id="videoUrl" value="" placeholder="粘贴 B 站视频链接（仅在本机解析）"></div>
           <div class="row"><label>解析结果</label><span class="video-meta" id="videoMeta">尚未解析链接</span></div>
           <div class="row"><label>本地视频</label><input type="file" id="localVideoFile" accept="video/*" style="font-size:11.5px"></div>
           <div class="row"><label>投放时间</label><input type="number" id="videoOffset" min="0" step="1" value="0" style="flex:0 0 88px"><span class="hint" style="margin:0;flex:1">弹幕出现在视频第几秒，事件自动前移对齐</span></div>
-          <div class="row"><label>视频时长</label><input type="number" id="videoDuration" min="1" step="1" value="1685" style="flex:0 0 88px"><span class="hint" style="margin:0;flex:1">秒，决定刻度上限与停留时长</span></div>
+          <div class="row"><label>视频时长</label><input type="number" id="videoDuration" min="1" step="1" value="600" style="flex:0 0 88px"><span class="hint" style="margin:0;flex:1">秒，决定刻度上限与停留时长</span></div>
           <div class="row"><label>当前视频秒</label><input type="text" id="videoTime" value="00:00" style="flex:0 0 96px"><button class="mini" id="btnSeek">跳转到该秒</button><span class="hint" style="margin:0;flex:1">支持 83 / 01:23 / 1:02:03</span></div>
           <div class="btn-row">
             <button class="mini primary" id="btnLoadVideo">解析并嵌入播放器</button>
             <button class="mini" id="btnWatch">在原站打开</button>
-            <button class="mini" id="btnSampleTimeline">载入示例时间轴</button>
             <button class="mini" id="btnExportJson">导出时间轴 JSON</button>
             <button class="mini" id="btnImportJson">导入 JSON</button>
             <button class="mini" id="btnAutoDuration">按视频设停留时长</button>
             <input type="file" id="timelineFile" accept=".json,application/json" hidden>
           </div>
-          <div class="video-status" id="videoStatus">粘贴 B 站链接后点「解析并嵌入播放器」；也可载入本地视频文件获得精确时间同步。</div>
+          <div class="video-status" id="videoStatus">尚未载入视频。所有输入只在当前浏览器内处理，不会上传到服务器；刷新页面即清空。</div>
+          <p class="hint" style="margin-top:8px;padding:8px 10px;background:#eef6ff;border:1px solid #cfe0f5;border-radius:6px"><b>隐私 / 数据说明</b>：本页是纯静态 HTML，没有后端接口、Cookie、localStorage、IndexedDB 或统计脚本。你填写的队名、比分、时间轴、视频链接与生成的 BAS 全部只在<b>当前浏览器内存</b>中处理，不上传、不落服务器；刷新或关闭标签页即清空，需要留存请点「导出时间轴 JSON」或「下载 BAS」保存到自己设备。B 站播放器只在你主动点击「解析并嵌入播放器」后，由你的浏览器直接向 B 站请求；「官方试验室」「在原站打开」也是你主动点击才会把当前 BAS / 视频地址带到对应站点。任何静态托管平台都会产生标准访问日志（IP、时间、URL），但页面不会把表单内容写进这些日志。</p>
           <div class="player-bar" style="margin-top:10px">
             <label><input type="checkbox" id="followVideo" checked> 预览跟随视频时间</label>
-            <span id="playerMode">在线播放器 · 手动同步时间</span>
+            <span id="playerMode">未载入视频 · 纯本地处理</span>
             <span class="hint" style="margin:0">若播放器空白，点「在原站打开」</span>
           </div>
           <p class="hint" style="margin-top:4px">在线播放器为跨域 iframe，无法读取播放进度：看播放器进度条 → 把时间填进「当前视频秒」→ 预览与刻度同步；点刻度 / 事件行 ⤴ 会重载播放器并跳到该秒。载入本地视频文件后改为自动同步 <code>currentTime</code>。</p>
@@ -342,7 +342,6 @@
             </div>
             <div class="btn-row">
               <button class="mini" id="addEvent">＋ 添加事件</button>
-              <button class="mini" id="demoEvents">载入示例事件</button>
               <button class="mini danger" id="clearEvents">清空</button>
             </div>
             <p class="hint" id="valueHint">半局填「上/下」；垒包、布尔字段填「1/0」；其余填数字或文字。</p>
@@ -430,7 +429,7 @@
             <div class="foot">
               使用方法：复制上方代码 → 在支持 BAS 的 B 站播放器「高级弹幕 / 代码弹幕」编辑器中粘贴并运行（需相应投稿权限）；或点「在官方试验室打开」直接调试。<br>
               无时间轴事件时输出静态记分条，所有元素 <code>duration</code> 相同、常驻画面；有事件时按<b>视频绝对秒</b>记录，生成时按「投放时间」换算成弹幕相对秒，用 <code>then set</code> 依次更新文字与指示灯。<br>
-              左栏「在线视频 · 时间同步」可嵌入 B 站在线播放器（或载入本地视频文件）对照画面手工打点，时间轴刻度与事件表分别在右栏与左栏，支持刻度跳转、快捷事件、JSON 导入导出；示例视频画面无记分板，内置时间轴仅为演示数据。<br>
+              左栏「在线视频 · 时间同步」可嵌入 B 站在线播放器（或载入本地视频文件）对照画面手工打点，时间轴刻度与事件表分别在右栏与左栏，支持刻度跳转、快捷事件、JSON 导入导出；页面不预置任何视频或比赛数据，时间轴由使用者手工打点或从自己的 JSON 导入。<br>
               右下角 B / S 两行黑底记数与「球数行底色」、队伍行配色（写入 <code>fillColor / color</code>）、四角定位（按宽度换算 X/Y 百分比）与字号（写入 <code>fontSize</code>，按时间轴最宽状态固化）都会在生成时固化到脚本里；颜色与字号不支持在时间轴中途切换（BAS 的 <code>path</code> 不能在 <code>set</code> 中改 <code>fillColor</code>）。
             </div>
           </div>
@@ -586,28 +585,17 @@
   /* ---------- 播放器 ---------- */
   function renderVideoMeta(info){
     if (!info || !info.valid){ els.videoMeta.textContent = (info && info.error) || '尚未解析链接'; return; }
-    var extra = '';
-    if (info.bvid === V.SAMPLE_VIDEO.bvid){
-      var v = V.SAMPLE_VIDEO, p = v.pages[info.page-1] || v.pages[0];
-      extra = ' · <b>' + escapeHTML(v.title) + '</b> · 「' + escapeHTML(p.part) + '」' +
-              p.duration + 's · ' + v.danmakuCues.length + ' 条弹幕线索 · 画面无记分板（手工打点）';
-    } else {
-      extra = ' · 非示例视频；时长请手动填写，局数比分对照画面编辑';
-    }
-    els.videoMeta.innerHTML = escapeHTML(info.bvid || ('av' + info.avid)) + ' · P' + info.page +
-      (info.startTime ? ' · 起始 ' + fmtTime(info.startTime) : '') + extra;
+    /* 只回显使用者自己粘贴的链接信息，不查询、不附带任何预置视频资料 */
+    els.videoMeta.textContent = (info.bvid || ('av' + info.avid)) + ' · P' + info.page +
+      (info.startTime ? ' · 起始 ' + fmtTime(info.startTime) : '') + ' · 时长请在上方手动填写';
   }
   function loadOnlinePlayer(t){
     var info = V.parseBiliUrl(els.videoUrl.value);
     renderVideoMeta(info);
     if (!info.valid){ setVideoStatus(info.error, true); return null; }
     playerInfo = info; playerMode = 'online'; videoEl = null; videoActive = true;
-    if (info.bvid === V.SAMPLE_VIDEO.bvid){
-      var p = V.SAMPLE_VIDEO.pages[info.page-1] || V.SAMPLE_VIDEO.pages[0];
-      els.videoDuration.value = p.duration;
-      if (info.startTime && !t) t = info.startTime;
-    }
-    var src = V.buildPlayerSrc(info, t || 0, V.SAMPLE_VIDEO);
+    if (info.startTime && !t) t = info.startTime;
+    var src = V.buildPlayerSrc(info, t || 0);
     els.playerBox.innerHTML = '';
     var f = document.createElement('iframe');
     f.setAttribute('allowfullscreen', 'true');
@@ -666,7 +654,7 @@
     if (playerMode === 'local' && videoEl){
       try { videoEl.currentTime = t; } catch(e){}
     } else if (playerMode === 'online' && playerInfo){
-      var src = V.buildPlayerSrc(playerInfo, t, V.SAMPLE_VIDEO);
+      var src = V.buildPlayerSrc(playerInfo, t);
       var f = els.playerBox.querySelector('iframe');
       if (f) f.src = src;
     }
@@ -683,7 +671,7 @@
 
   /* ---------- 时间轴刻度 / 邻近事件 ---------- */
   function renderMarkers(){
-    var dur = Math.max(1, parseInt(els.videoDuration.value, 10) || 1685);
+    var dur = Math.max(1, parseInt(els.videoDuration.value, 10) || 600);
     var off = Math.max(0, Number(els.videoOffset.value) || 0);
     var ticks = collectEvents().map(function(e){
       var pct = Math.max(0, Math.min(100, e.t / dur * 100));
@@ -698,7 +686,7 @@
     updateCursor();
   }
   function updateCursor(){
-    var dur = Math.max(1, parseInt(els.videoDuration.value, 10) || 1685);
+    var dur = Math.max(1, parseInt(els.videoDuration.value, 10) || 600);
     var c = document.getElementById('barCursor');
     if (c) c.style.left = Math.max(0, Math.min(100, currentSec / dur * 100)).toFixed(3) + '%';
   }
@@ -771,7 +759,7 @@
   }
   function autoSetDuration(){
     var off = Math.max(0, parseInt(els.videoOffset.value, 10) || 0);
-    var dur = Math.max(1, (parseInt(els.videoDuration.value, 10) || 1685) - off);
+    var dur = Math.max(1, (parseInt(els.videoDuration.value, 10) || 600) - off);
     setSelectValue(els.duration, Math.max(5, Math.ceil(dur / 300) * 5) + 'm');
   }
   function applyTimelineToForm(r, autoDur, doRefresh){
@@ -789,19 +777,11 @@
       al.absorbed + ' 个变化并入初始状态，其余 ' + al.events.length + ' 个换算为弹幕相对秒。');
     if (doRefresh !== false) refresh();
   }
-  function loadSampleTimeline(){
-    var raw = V.buildSampleTimeline();
-    var r = V.normalizeTimeline(raw);
-    if (playerMode === 'none' && location.search.indexOf('noplayer=1') < 0) loadOnlinePlayer(0);
-    applyTimelineToForm(r, true, false);
-    setVideoStatus('已载入示例时间轴（' + r.events.length + ' 个事件，' + V.SAMPLE_VIDEO.title + ' P1）。' +
-      '注意：该视频画面无记分板，此为按片长与弹幕线索编排的占位数据，非真实比赛统计，请对照播放器画面自行修改。');
-  }
   function exportTimelineJson(){
     var info = playerInfo || V.parseBiliUrl(els.videoUrl.value);
     var meta = { bvid: info.bvid || '', avid: info.avid || '', page: info.page || 1,
                  duration: parseInt(els.videoDuration.value, 10) || 0,
-                 url: info.raw || els.videoUrl.value, title: V.SAMPLE_VIDEO.title };
+                 url: info.raw || els.videoUrl.value };
     var data = V.exportTimeline(collectState(), collectEvents(), meta);
     var blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json;charset=utf-8' });
     var a = document.createElement('a');
@@ -989,7 +969,7 @@
     var tick = e.target.closest('.tick');
     if (tick){ seekVideo(Number(tick.getAttribute('data-t'))); return; }
     var rect = els.timelineBar.getBoundingClientRect();
-    var dur = Math.max(1, parseInt(els.videoDuration.value, 10) || 1685);
+    var dur = Math.max(1, parseInt(els.videoDuration.value, 10) || 600);
     seekVideo(Math.round((e.clientX - rect.left) / rect.width * dur));
   });
   els.cueList.addEventListener('click', function(e){
@@ -1019,9 +999,6 @@
     if (!info.valid){ setVideoStatus(info.error, true); return; }
     window.open(V.buildWatchUrl(info, currentSec), '_blank');
   });
-  document.getElementById('btnSampleTimeline').addEventListener('click', function(){
-    loadSampleTimeline(); refresh();
-  });
   document.getElementById('btnExportJson').addEventListener('click', exportTimelineJson);
   document.getElementById('btnImportJson').addEventListener('click', function(){ els.timelineFile.click(); });
   document.getElementById('btnAutoDuration').addEventListener('click', function(){
@@ -1050,7 +1027,6 @@
     addEventRow(currentSec || 10, 'homeScore', ''); refresh();
   });
   document.getElementById('clearEvents').addEventListener('click', function(){ els.eventRows.innerHTML=''; refresh(); });
-  document.getElementById('demoEvents').addEventListener('click', function(){ loadDemoEvents(); refresh(); });
   document.getElementById('btnCopy').addEventListener('click', function(){
     els.codeOut.removeAttribute('readonly');
     els.codeOut.select();
@@ -1075,37 +1051,16 @@
     setStatus('已在官方试验室打开；若代码过长导致 URL 截断，请改用「复制代码」手动粘贴。');
   });
 
-  function loadDemoEvents(){
-    els.eventRows.innerHTML='';
-    addEventRow(12, 'strikes', '0');
-    addEventRow(12, 'balls', '0');
-    addEventRow(18, 'outs', '1');
-    addEventRow(26, 'homeScore', '5');
-    addEventRow(34, 'inning', '6');
-    addEventRow(34, 'half', '上');
-    addEventRow(42, 'b1', '0');
-    addEventRow(42, 'b2', '0');
-    addEventRow(42, 'b3', '1');
-    els.previewTime.value = 0;
-    setVideoTime(0, false);
-    updateTimeRange();
-  }
 
-  if (location.search.indexOf('events=1') >= 0) loadDemoEvents();
   if (location.search.indexOf('engine=1') >= 0) els.engineToggle.checked = true;
 
-  /* 默认嵌入示例在线视频；?noplayer=1 可跳过（便于离线/自动化验证） */
-  if (location.search.indexOf('noplayer=1') < 0) loadOnlinePlayer(0);
-  else {
-    setPlaceholder('离线验证模式：未嵌入播放器。点「解析并嵌入播放器」加载 B 站在线视频，或选择本地视频文件；弹幕仍叠加显示在舞台右下角。');
-    els.playerMode.textContent = '未嵌入播放器 · 离线验证模式';
-    setVideoStatus('离线验证模式：不请求在线播放器，时间轴编辑、叠加预览与 BAS 生成均可正常使用。');
-  }
+  /* 公网版：默认不请求任何在线播放器；只有使用者主动点击才由本人浏览器加载 B 站 iframe */
+  setPlaceholder('尚未载入视频。点「解析并嵌入播放器」加载 B 站在线视频，或选择本地视频文件；弹幕仍叠加显示在舞台右下角。');
+  els.playerMode.textContent = '未载入视频 · 纯本地处理';
+  setVideoStatus('尚未载入视频。所有输入只在当前浏览器内处理，不会上传到服务器；刷新页面即清空。');
   applyVideoLayer();
-  /* ?video=1：载入示例时间轴并应用，一键验证完整 BAS */
-  if (location.search.indexOf('video=1') >= 0) loadSampleTimeline();
-  else if (location.search.indexOf('events=1') < 0) addEventRow(10, 'homeScore', '');
-  renderVideoMeta(V.parseBiliUrl(els.videoUrl.value));
+  addEventRow(10, 'homeScore', '');
+  els.videoMeta.textContent = '尚未解析链接';
   refresh();
 })();
 </script>

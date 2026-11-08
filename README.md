@@ -40,12 +40,15 @@
 | `jquery.min.js` / `bas-engine.js` | 内联依赖，jQuery 与 BAS 官方引擎 |
 | `reference-scoreboard.png` | 界面里显示的原版记分板参考图 |
 | `public-site/index.html` + `public-site/reference-scoreboard.png` | **公网发布目录**：只有干净的静态网页与参考图，可直接上传到任意静态托管 |
+| `docs/index.html` + `docs/reference-scoreboard.png` | 与 `public-site` 内容相同，供 GitHub Pages 使用（Pages 要求目录名为 `docs`） |
 
 > 示例视频 [BV19f4H6xE9B](https://www.bilibili.com/video/BV19f4H6xE9B/) 的画面中没有记分板、也没有字幕识别，仓库内的时间轴是**手工演示数据**，不是自动识别结果；本项目已移除模型识别接口。示例视频元数据与演示时间轴只保留在 `build-video-bas.js`（本地构建脚本）和交付文件里，**不会打包进网页**。
 
 ## 公网发布与隐私
 
 `public-site/` 是可直接上传的静态站点目录，里面只有 `index.html` 和 `reference-scoreboard.png`，没有任何服务端代码、构建产物或示例数据。
+
+**已上线**：<https://2bsb.github.io/baseball-scorebug-bas/>（GitHub Pages，从 `main` 分支 `/docs` 目录发布，站点只暴露这两个干净静态文件）。
 
 - **依赖**：最终 HTML 含 5 段内联脚本（jQuery 3.2.1、BAS 引擎、`scorebug-generator.js`、`video-timeline.js`、页面主逻辑），**0 个外链 `<script>` / `<link>`**；唯一外部资源是同目录的 `reference-scoreboard.png`。
 - **页面初始状态**：B 站链接、解析结果、播放器、视频 URL 全部为空；视频时长默认 600 秒；不自动请求 `player.bilibili.com`。B 站 iframe 只在使用者主动点击「解析并嵌入播放器」后，由其浏览器直接向 B 站发起。

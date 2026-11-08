@@ -1,0 +1,10 @@
+# 工作区与临时产物（含无头 Chrome 缓存目录，约 500MB）
+.workbuddy/
+_refs/*
+!_refs/generator_source.html
+
+# 依赖与系统文件
+node_modules/
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,1098 @@
+{
+  "schema": "scorebug-timeline/1.0",
+  "video": {
+    "bvid": "BV19f4H6xE9B",
+    "aid": "117576575225102",
+    "title": "1107红钻棒球队 队内比赛",
+    "url": "https://www.bilibili.com/video/BV19f4H6xE9B/",
+    "uploader": "射射花",
+    "page": 1,
+    "part": "比赛",
+    "cid": "43418848432",
+    "duration": 1685,
+    "totalDuration": 1871,
+    "pages": [
+      {
+        "page": 1,
+        "part": "比赛",
+        "duration": 1685,
+        "cid": "43418848432"
+      },
+      {
+        "page": 2,
+        "part": "Perry",
+        "duration": 186,
+        "cid": "43423370389"
+      }
+    ],
+    "subtitle": false,
+    "danmakuCues": [
+      {
+        "t": 564.075,
+        "text": "马查多行为：打出去就站那里看"
+      },
+      {
+        "t": 814.625,
+        "text": "这球太强了"
+      },
+      {
+        "t": 1353.866,
+        "text": "MVP 庆祝动作"
+      },
+      {
+        "t": 1457.23,
+        "text": "投手已崩溃"
+      },
+      {
+        "t": 1505.506,
+        "text": "这个似乎是好球"
+      },
+      {
+        "t": 1506.266,
+        "text": "这是好球hhhh投手哭了"
+      },
+      {
+        "t": 1521.836,
+        "text": "SS 守得太深了"
+      }
+    ],
+    "note": "本垒后方固定机位，全程无记分板/比分叠字，B 站无字幕、仅 7 条弹幕。局数与比分需对照画面手工打点；下方内置时间轴仅用于演示编辑流程。"
+  },
+  "source": "built-in-sample",
+  "initial": {
+    "awayName": "RDA",
+    "homeName": "RDB",
+    "awayScore": 0,
+    "homeScore": 0,
+    "inning": 1,
+    "half": "top",
+    "b1": 0,
+    "b2": 0,
+    "b3": 0,
+    "outs": 0,
+    "balls": 0,
+    "strikes": 0
+  },
+  "events": [
+    {
+      "t": 18,
+      "field": "balls",
+      "value": "1",
+      "note": "打席开始"
+    },
+    {
+      "t": 38,
+      "field": "strikes",
+      "value": "1",
+      "note": ""
+    },
+    {
+      "t": 58,
+      "field": "strikes",
+      "value": "2",
+      "note": ""
+    },
+    {
+      "t": 75,
+      "field": "b1",
+      "value": "1",
+      "note": "安打上垒"
+    },
+    {
+      "t": 78,
+      "field": "balls",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 78,
+      "field": "strikes",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 105,
+      "field": "outs",
+      "value": "1",
+      "note": "一出局"
+    },
+    {
+      "t": 122,
+      "field": "b2",
+      "value": "1",
+      "note": "推进到二垒"
+    },
+    {
+      "t": 145,
+      "field": "awayScore",
+      "value": "1",
+      "note": "1 上 首分"
+    },
+    {
+      "t": 150,
+      "field": "outs",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 150,
+      "field": "balls",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 150,
+      "field": "strikes",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 150,
+      "field": "b1",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 150,
+      "field": "b2",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 150,
+      "field": "b3",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 169,
+      "field": "inning",
+      "value": "1",
+      "note": "第 1 局下开始"
+    },
+    {
+      "t": 169,
+      "field": "half",
+      "value": "bottom",
+      "note": "攻守交换"
+    },
+    {
+      "t": 186,
+      "field": "balls",
+      "value": "1",
+      "note": "打席开始"
+    },
+    {
+      "t": 206,
+      "field": "strikes",
+      "value": "1",
+      "note": ""
+    },
+    {
+      "t": 226,
+      "field": "strikes",
+      "value": "2",
+      "note": ""
+    },
+    {
+      "t": 243,
+      "field": "b1",
+      "value": "1",
+      "note": "安打上垒"
+    },
+    {
+      "t": 246,
+      "field": "balls",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 246,
+      "field": "strikes",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 273,
+      "field": "outs",
+      "value": "1",
+      "note": "一出局"
+    },
+    {
+      "t": 290,
+      "field": "b2",
+      "value": "1",
+      "note": "推进到二垒"
+    },
+    {
+      "t": 310,
+      "field": "homeScore",
+      "value": "2",
+      "note": "1 下 两分打点"
+    },
+    {
+      "t": 318,
+      "field": "outs",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 318,
+      "field": "balls",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 318,
+      "field": "strikes",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 318,
+      "field": "b1",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 318,
+      "field": "b2",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 318,
+      "field": "b3",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 338,
+      "field": "inning",
+      "value": "2",
+      "note": "第 2 局上开始"
+    },
+    {
+      "t": 338,
+      "field": "half",
+      "value": "top",
+      "note": "攻守交换"
+    },
+    {
+      "t": 355,
+      "field": "balls",
+      "value": "1",
+      "note": "打席开始"
+    },
+    {
+      "t": 375,
+      "field": "strikes",
+      "value": "1",
+      "note": ""
+    },
+    {
+      "t": 395,
+      "field": "strikes",
+      "value": "2",
+      "note": ""
+    },
+    {
+      "t": 412,
+      "field": "b1",
+      "value": "1",
+      "note": "安打上垒"
+    },
+    {
+      "t": 415,
+      "field": "balls",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 415,
+      "field": "strikes",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 442,
+      "field": "outs",
+      "value": "1",
+      "note": "一出局"
+    },
+    {
+      "t": 459,
+      "field": "b2",
+      "value": "1",
+      "note": "推进到二垒"
+    },
+    {
+      "t": 487,
+      "field": "outs",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 487,
+      "field": "balls",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 487,
+      "field": "strikes",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 487,
+      "field": "b1",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 487,
+      "field": "b2",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 487,
+      "field": "b3",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 506,
+      "field": "inning",
+      "value": "2",
+      "note": "第 2 局下开始"
+    },
+    {
+      "t": 506,
+      "field": "half",
+      "value": "bottom",
+      "note": "攻守交换"
+    },
+    {
+      "t": 523,
+      "field": "balls",
+      "value": "1",
+      "note": "打席开始"
+    },
+    {
+      "t": 543,
+      "field": "strikes",
+      "value": "1",
+      "note": ""
+    },
+    {
+      "t": 563,
+      "field": "strikes",
+      "value": "2",
+      "note": ""
+    },
+    {
+      "t": 564.075,
+      "field": "awayScore",
+      "value": "2",
+      "note": "弹幕 564s「马查多行为：打出去就站那里看」"
+    },
+    {
+      "t": 580,
+      "field": "b1",
+      "value": "1",
+      "note": "安打上垒"
+    },
+    {
+      "t": 583,
+      "field": "balls",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 583,
+      "field": "strikes",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 610,
+      "field": "outs",
+      "value": "1",
+      "note": "一出局"
+    },
+    {
+      "t": 627,
+      "field": "b2",
+      "value": "1",
+      "note": "推进到二垒"
+    },
+    {
+      "t": 655,
+      "field": "outs",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 655,
+      "field": "balls",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 655,
+      "field": "strikes",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 655,
+      "field": "b1",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 655,
+      "field": "b2",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 655,
+      "field": "b3",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 675,
+      "field": "inning",
+      "value": "3",
+      "note": "第 3 局上开始"
+    },
+    {
+      "t": 675,
+      "field": "half",
+      "value": "top",
+      "note": "攻守交换"
+    },
+    {
+      "t": 692,
+      "field": "balls",
+      "value": "1",
+      "note": "打席开始"
+    },
+    {
+      "t": 712,
+      "field": "strikes",
+      "value": "1",
+      "note": ""
+    },
+    {
+      "t": 732,
+      "field": "strikes",
+      "value": "2",
+      "note": ""
+    },
+    {
+      "t": 749,
+      "field": "b1",
+      "value": "1",
+      "note": "安打上垒"
+    },
+    {
+      "t": 752,
+      "field": "balls",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 752,
+      "field": "strikes",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 779,
+      "field": "outs",
+      "value": "1",
+      "note": "一出局"
+    },
+    {
+      "t": 796,
+      "field": "b2",
+      "value": "1",
+      "note": "推进到二垒"
+    },
+    {
+      "t": 814.625,
+      "field": "awayScore",
+      "value": "4",
+      "note": "弹幕 814s「这球太强了」→ 两分"
+    },
+    {
+      "t": 824,
+      "field": "outs",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 824,
+      "field": "balls",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 824,
+      "field": "strikes",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 824,
+      "field": "b1",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 824,
+      "field": "b2",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 824,
+      "field": "b3",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 843,
+      "field": "inning",
+      "value": "3",
+      "note": "第 3 局下开始"
+    },
+    {
+      "t": 843,
+      "field": "half",
+      "value": "bottom",
+      "note": "攻守交换"
+    },
+    {
+      "t": 860,
+      "field": "balls",
+      "value": "1",
+      "note": "打席开始"
+    },
+    {
+      "t": 880,
+      "field": "strikes",
+      "value": "1",
+      "note": ""
+    },
+    {
+      "t": 900,
+      "field": "strikes",
+      "value": "2",
+      "note": ""
+    },
+    {
+      "t": 917,
+      "field": "b1",
+      "value": "1",
+      "note": "安打上垒"
+    },
+    {
+      "t": 920,
+      "field": "balls",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 920,
+      "field": "strikes",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 947,
+      "field": "outs",
+      "value": "1",
+      "note": "一出局"
+    },
+    {
+      "t": 964,
+      "field": "b2",
+      "value": "1",
+      "note": "推进到二垒"
+    },
+    {
+      "t": 980,
+      "field": "homeScore",
+      "value": "3",
+      "note": "3 下 追分"
+    },
+    {
+      "t": 992,
+      "field": "outs",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 992,
+      "field": "balls",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 992,
+      "field": "strikes",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 992,
+      "field": "b1",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 992,
+      "field": "b2",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 992,
+      "field": "b3",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1012,
+      "field": "inning",
+      "value": "4",
+      "note": "第 4 局上开始"
+    },
+    {
+      "t": 1012,
+      "field": "half",
+      "value": "top",
+      "note": "攻守交换"
+    },
+    {
+      "t": 1029,
+      "field": "balls",
+      "value": "1",
+      "note": "打席开始"
+    },
+    {
+      "t": 1049,
+      "field": "strikes",
+      "value": "1",
+      "note": ""
+    },
+    {
+      "t": 1069,
+      "field": "strikes",
+      "value": "2",
+      "note": ""
+    },
+    {
+      "t": 1086,
+      "field": "b1",
+      "value": "1",
+      "note": "安打上垒"
+    },
+    {
+      "t": 1089,
+      "field": "balls",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 1089,
+      "field": "strikes",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 1116,
+      "field": "outs",
+      "value": "1",
+      "note": "一出局"
+    },
+    {
+      "t": 1133,
+      "field": "b2",
+      "value": "1",
+      "note": "推进到二垒"
+    },
+    {
+      "t": 1161,
+      "field": "outs",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1161,
+      "field": "balls",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1161,
+      "field": "strikes",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1161,
+      "field": "b1",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1161,
+      "field": "b2",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1161,
+      "field": "b3",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1180,
+      "field": "inning",
+      "value": "4",
+      "note": "第 4 局下开始"
+    },
+    {
+      "t": 1180,
+      "field": "half",
+      "value": "bottom",
+      "note": "攻守交换"
+    },
+    {
+      "t": 1197,
+      "field": "balls",
+      "value": "1",
+      "note": "打席开始"
+    },
+    {
+      "t": 1217,
+      "field": "strikes",
+      "value": "1",
+      "note": ""
+    },
+    {
+      "t": 1237,
+      "field": "strikes",
+      "value": "2",
+      "note": ""
+    },
+    {
+      "t": 1254,
+      "field": "b1",
+      "value": "1",
+      "note": "安打上垒"
+    },
+    {
+      "t": 1257,
+      "field": "balls",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 1257,
+      "field": "strikes",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 1284,
+      "field": "outs",
+      "value": "1",
+      "note": "一出局"
+    },
+    {
+      "t": 1300,
+      "field": "homeScore",
+      "value": "4",
+      "note": "4 下 追平"
+    },
+    {
+      "t": 1301,
+      "field": "b2",
+      "value": "1",
+      "note": "推进到二垒"
+    },
+    {
+      "t": 1329,
+      "field": "outs",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1329,
+      "field": "balls",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1329,
+      "field": "strikes",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1329,
+      "field": "b1",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1329,
+      "field": "b2",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1329,
+      "field": "b3",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1349,
+      "field": "inning",
+      "value": "5",
+      "note": "第 5 局上开始"
+    },
+    {
+      "t": 1349,
+      "field": "half",
+      "value": "top",
+      "note": "攻守交换"
+    },
+    {
+      "t": 1353.866,
+      "field": "b3",
+      "value": "1",
+      "note": "弹幕 1353s「MVP 庆祝动作」→ 三垒有人"
+    },
+    {
+      "t": 1366,
+      "field": "balls",
+      "value": "1",
+      "note": "打席开始"
+    },
+    {
+      "t": 1386,
+      "field": "strikes",
+      "value": "1",
+      "note": ""
+    },
+    {
+      "t": 1406,
+      "field": "strikes",
+      "value": "2",
+      "note": ""
+    },
+    {
+      "t": 1423,
+      "field": "b1",
+      "value": "1",
+      "note": "安打上垒"
+    },
+    {
+      "t": 1426,
+      "field": "balls",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 1426,
+      "field": "strikes",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 1453,
+      "field": "outs",
+      "value": "1",
+      "note": "一出局"
+    },
+    {
+      "t": 1457.23,
+      "field": "awayScore",
+      "value": "5",
+      "note": "弹幕 1457s「投手已崩溃」"
+    },
+    {
+      "t": 1470,
+      "field": "b2",
+      "value": "1",
+      "note": "推进到二垒"
+    },
+    {
+      "t": 1498,
+      "field": "outs",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1498,
+      "field": "balls",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1498,
+      "field": "strikes",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1498,
+      "field": "b1",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1498,
+      "field": "b2",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1498,
+      "field": "b3",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1505.506,
+      "field": "strikes",
+      "value": "2",
+      "note": "弹幕 1505s「这个似乎是好球」"
+    },
+    {
+      "t": 1506.266,
+      "field": "balls",
+      "value": "1",
+      "note": "弹幕 1506s「这是好球hhhh投手哭了」"
+    },
+    {
+      "t": 1517,
+      "field": "inning",
+      "value": "5",
+      "note": "第 5 局下开始"
+    },
+    {
+      "t": 1517,
+      "field": "half",
+      "value": "bottom",
+      "note": "攻守交换"
+    },
+    {
+      "t": 1521.836,
+      "field": "b1",
+      "value": "1",
+      "note": "弹幕 1521s「SS 守得太深了」→ 上垒"
+    },
+    {
+      "t": 1534,
+      "field": "balls",
+      "value": "1",
+      "note": "打席开始"
+    },
+    {
+      "t": 1554,
+      "field": "strikes",
+      "value": "1",
+      "note": ""
+    },
+    {
+      "t": 1574,
+      "field": "strikes",
+      "value": "2",
+      "note": ""
+    },
+    {
+      "t": 1591,
+      "field": "b1",
+      "value": "1",
+      "note": "安打上垒"
+    },
+    {
+      "t": 1594,
+      "field": "balls",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 1594,
+      "field": "strikes",
+      "value": "0",
+      "note": "打席结束重置"
+    },
+    {
+      "t": 1620,
+      "field": "homeScore",
+      "value": "6",
+      "note": "5 下 再见安打，比赛结束"
+    },
+    {
+      "t": 1621,
+      "field": "outs",
+      "value": "1",
+      "note": "一出局"
+    },
+    {
+      "t": 1638,
+      "field": "b2",
+      "value": "1",
+      "note": "推进到二垒"
+    },
+    {
+      "t": 1666,
+      "field": "outs",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1666,
+      "field": "balls",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1666,
+      "field": "strikes",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1666,
+      "field": "b1",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1666,
+      "field": "b2",
+      "value": "0",
+      "note": "半局结束清场"
+    },
+    {
+      "t": 1666,
+      "field": "b3",
+      "value": "0",
+      "note": "半局结束清场"
+    }
+  ]
+}

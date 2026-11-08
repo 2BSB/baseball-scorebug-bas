@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>棒球实时计分 · BAS 高级弹幕生成器</title>
+<style>
+  :root{
+    --bg:#f5f7fa; --card:#ffffff; --line:#e3e8ef; --text:#1f2937; --muted:#6b7280;
+    --brand:#1a56c4; --brand-soft:#eaf1ff; --ok:#0f7b4f; --warn:#b45309;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  .app{max-width:1500px;margin:0 auto;padding:22px 24px 40px}
+  header{margin-bottom:18px}
+  h1{font-size:23px;margin:0 0 6px;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:13px}
+  .sub a{color:var(--brand);text-decoration:none}
+  .grid{display:grid;grid-template-columns:390px minmax(0,1fr);gap:18px;align-items:start}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(31,41,55,.05);overflow:hidden}
+  .card h2{font-size:14px;margin:0;padding:13px 16px;border-bottom:1px solid var(--line);background:#fafbfc;font-weight:600}
+  .card .body{padding:14px 16px}
+  .group{margin-bottom:18px}
+  .group:last-child{margin-bottom:0}
+  .group-title{font-size:12px;font-weight:700;color:var(--brand);letter-spacing:.5px;margin-bottom:9px;text-transform:uppercase}
+  .row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .row label{flex:0 0 82px;color:var(--muted);font-size:12.5px}
+  .row input[type=text],.row input[type=number],.row select,.row input[type=range]{flex:1;min-width:0}
+  input[type=text],input[type=number],select,textarea{font:inherit;color:var(--text);background:#fff;border:1px solid #d7dee8;border-radius:7px;padding:6px 9px;outline:none}
+  input[type=text]:focus,input[type=number]:focus,select:focus,textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(26,86,196,.10)}
+  input[type=range]{padding:0;accent-color:var(--brand);border:0;background:transparent}
+  input[type=range]:disabled{opacity:.42;cursor:not-allowed}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .pair .row{display:block;margin:0}
+  .pair .row label{display:block;margin-bottom:4px}
+  .pair .row input,.pair .row select{width:100%}
+  .color-row{display:flex;gap:8px;align-items:center;margin-bottom:7px}
+  .color-row label{flex:0 0 88px;color:var(--muted);font-size:12.5px}
+  .color-row input[type=color]{width:46px;height:28px;padding:2px;border:1px solid #d7dee8;border-radius:6px;background:#fff;cursor:pointer;flex:none}
+  .color-row .swatch{font-size:11.5px;color:var(--muted);font-family:Consolas,Menlo,monospace}
+  .radios{display:flex;gap:14px;align-items:center;font-size:13px}
+  .radios label{display:flex;gap:5px;align-items:center;color:var(--text);flex:none}
+  .checks{display:flex;gap:10px;flex-wrap:wrap}
+  .checks label{display:flex;gap:5px;align-items:center;font-size:13px;background:#f7f9fc;border:1px solid var(--line);padding:5px 9px;border-radius:7px;cursor:pointer}
+  .hint{font-size:11.5px;color:var(--muted);margin:4px 0 0}
+  .val{font-size:12px;color:var(--brand);font-variant-numeric:tabular-nums;min-width:46px;text-align:right}
+  .events{width:100%;border-collapse:collapse;font-size:12.5px}
+  .events th{text-align:left;color:var(--muted);font-weight:600;padding:4px 4px 6px}
+  .events td{padding:3px 3px;vertical-align:middle}
+  .events input,.events select{width:100%;padding:5px 6px;font-size:12px}
+  .events .t{width:70px}
+  .events .f{width:110px}
+  .events .jump{width:30px}
+  button{font:inherit;cursor:pointer;border-radius:7px;border:1px solid #d7dee8;background:#fff;color:var(--text);padding:7px 12px;transition:.15s}
+  button:hover{border-color:var(--brand);color:var(--brand)}
+  button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+  button.primary:hover{background:#1448a8;color:#fff}
+  button.mini{padding:4px 8px;font-size:12px}
+  button.danger{color:#b91c1c}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .stage{position:relative;width:100%;aspect-ratio:16/9;background:radial-gradient(ellipse at 50% 115%,#1b3c2b 0%,#0f2119 45%,#0b1420 100%);border-radius:9px;overflow:hidden;border:1px solid #cfd7e3}
+  /* 视频画面作为舞台底层；BAS 弹幕叠加在其上 */
+  .stage > #playerBox{position:absolute;inset:0;width:100%;height:100%;max-width:none;aspect-ratio:auto;border:0;border-radius:0;margin:0;z-index:1;background:#0b1420}
+  .stage > #playerBox iframe{width:100%;height:100%;border:0;display:block;background:#000}
+  .stage > #playerBox video{width:100%;height:100%;border:0;display:block;background:#000;object-fit:contain}
+  .stage.video-off > #playerBox{display:none}
+  .stage > #svgPreview,.stage > #basLayer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .stage > #svgPreview{z-index:2}
+  .stage > #basLayer{display:none;overflow:hidden;z-index:3}
+  .stage.engine-on > #svgPreview{visibility:hidden}
+  .stage.engine-on > #basLayer{display:block}
+  .stage-tag{position:absolute;left:10px;bottom:9px;z-index:4;color:#dbe4f0;font-size:11px;background:rgba(0,0,0,.45);padding:3px 8px;border-radius:5px;pointer-events:none}
+  .stage-tag.overlay{left:auto;right:10px;top:9px;bottom:auto;background:rgba(26,86,196,.78);color:#fff}
+  .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:12px 0 6px;font-size:12.5px;color:var(--muted)}
+  .toolbar input[type=range]{width:190px}
+  .toolbar label{display:flex;gap:6px;align-items:center}
+  .status{font-size:12px;color:var(--ok);min-height:18px;margin:2px 0 8px}
+  .status.err{color:var(--warn)}
+  .ref{display:flex;gap:12px;align-items:center;margin:4px 0 12px}
+  .ref img{width:240px;height:auto;border-radius:5px;border:1px solid var(--line);image-rendering:auto}
+  .ref p{font-size:12px;color:var(--muted);margin:0}
+  .legend{font-size:12.5px;color:#374151;background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:10px 0 12px}
+  .legend b{color:var(--brand)}
+  .legend ul{margin:6px 0 0;padding-left:18px}
+  .legend li{margin:2px 0}
+  .codebar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+  .codebar .grow{flex:1}
+  textarea#codeOut{width:100%;height:270px;font:12px/1.55 Consolas,"SFMono-Regular",Menlo,monospace;resize:vertical;background:#fbfcfe;white-space:pre;tab-size:4}
+  .foot{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.8}
+  .events-wrap{max-height:250px;overflow:auto;border:1px solid var(--line);border-radius:7px}
+  .events-wrap .events{margin:0}
+  /* ===== 在线视频 · 时间轴对照 ===== */
+  .video-card{margin-bottom:18px}
+  .video-body{display:grid;grid-template-columns:390px minmax(0,1fr);gap:18px}
+  .video-col .row{margin-bottom:7px}
+  .video-meta{font-size:12px;color:var(--muted);flex:1;line-height:1.5}
+  .video-status{font-size:12px;color:var(--ok);min-height:18px;margin-top:6px;line-height:1.5}
+  .video-status.err{color:var(--warn)}
+  .stage-hint{position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;text-align:center;color:#c9d6e6;font-size:13px;line-height:1.9;padding:22px;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.85)}
+  .player-bar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+  .player-bar label{display:flex;gap:5px;align-items:center}
+  .stage-note{font-size:12px;color:#374151;background:var(--brand-soft);border:1px solid #c9dbff;border-radius:8px;padding:9px 11px;margin:10px 0 0;line-height:1.75}
+  .stage-note b{color:var(--brand)}
+  .timeline-bar{position:relative;width:100%;height:30px;margin:10px 0 0;border-radius:6px;background:linear-gradient(#f3f6fb,#e8edf5);border:1px solid var(--line);cursor:crosshair;overflow:hidden}
+  .timeline-bar .base{position:absolute;left:0;right:0;top:13px;height:4px;background:#cbd6e6;border-radius:2px}
+  .timeline-bar .tick{position:absolute;top:5px;width:2px;height:20px;background:var(--brand);opacity:.55;cursor:pointer}
+  .timeline-bar .tick:hover{opacity:1;width:4px}
+  .timeline-bar .offset{position:absolute;top:0;width:2px;height:100%;background:var(--warn);opacity:.8}
+  .timeline-bar .cursor{position:absolute;top:0;width:2px;height:100%;background:#dc2626}
+  .cue-list{width:100%;max-height:96px;overflow:auto;margin:6px 0 0;font-size:11.5px;border:1px solid var(--line);border-radius:7px;background:#fafbfc;padding:4px 7px}
+  .cue{display:inline-block;margin:2px 6px 2px 0;padding:1px 6px;border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--brand);cursor:pointer;font-variant-numeric:tabular-nums}
+  .cue:hover{border-color:var(--brand)}
+  .cue.past{color:var(--muted);background:#f1f4f9}
+  .video-help{border-top:1px solid var(--line);padding:10px 16px 12px;font-size:12px;color:var(--muted)}
+  .video-help b{color:var(--brand)}
+  .quick{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:7px}
+  .quick button{padding:4px 9px;font-size:11.5px}
+  .quick select,.quick input[type=text]{padding:4px 7px;font-size:11.5px}
+  .quick select{width:118px}
+  .quick input[type=text]{width:82px}
+  .current-state{margin-top:7px;font-size:12px;color:#374151;background:#f8fafc;border:1px solid var(--line);border-radius:6px;padding:6px 9px}
+  /* ===== 顶部预览：播放器 + 时间轴 + 打点同区紧邻 ===== */
+  .preview-layout{display:grid;grid-template-columns:380px minmax(0,1fr);gap:16px;align-items:start}
+  .pv-side{min-width:0;border-right:1px solid var(--line);padding-right:16px}
+  .pv-main{min-width:0}
+  .pv-side .row{margin-bottom:7px}
+  .pv-side .hint{line-height:1.65}
+  .pv-side .stage-note{margin:10px 0 0;font-size:11.5px;padding:8px 10px}
+  .pv-side .ref{margin:12px 0 0}
+  .pv-side .ref img{width:150px}
+  .pv-side .ref p{font-size:11px;line-height:1.65}
+  .compact-title{font-size:12px;font-weight:700;color:var(--brand);letter-spacing:.5px;margin:0 0 9px;text-transform:uppercase}
+  .punch{margin-top:10px;padding:10px 12px 12px;border:1px solid var(--line);border-radius:8px;background:#fafbfc;font-size:12px;color:var(--muted);line-height:1.7}
+  .punch > b{color:var(--brand)}
+  .punch .quick{margin-top:6px}
+  .video-help .events-wrap{max-height:230px;background:#fff;margin-top:9px}
+  .video-help .btn-row{margin-top:9px}
+  .size-presets{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin:0 0 9px}
+  .size-presets .hint{margin:0}
+  .size-presets button{padding:3px 8px;font-size:11px}
+  .size-presets button.active{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+  /* ===== 左侧栏：比赛数据折叠分组 + 时间轴 ===== */
+  .side-section{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  .side-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;font-weight:700;color:var(--text);margin:0 0 9px}
+  .side-head .hint{font-weight:400;margin:0}
+  .side-head button{padding:2px 8px;font-size:11px}
+  .fold{border:1px solid var(--line);border-radius:8px;background:#fff;margin-bottom:7px;overflow:hidden}
+  .fold-head{display:flex;justify-content:space-between;align-items:center;width:100%;padding:7px 11px;border:0;border-radius:0;background:#fafbfc;color:var(--brand);font-size:12px;font-weight:700;letter-spacing:.4px;text-align:left}
+  .fold-head:hover{background:var(--brand-soft);color:var(--brand)}
+  .fold-head .chev{font-size:11px;display:inline-block;transition:transform .15s}
+  .fold.open .fold-head{border-bottom:1px solid var(--line)}
+  .fold.open .fold-head .chev{transform:rotate(180deg)}
+  .fold-body{padding:10px 11px 3px}
+  .fold:not(.open) .fold-body{display:none}
+  .fold .group{margin-bottom:0}
+  .fold .group-title{display:none}
+  .fold .row{margin-bottom:8px}
+  .fold .row label{flex:0 0 76px}
+  .fold .color-row label{flex:0 0 84px}
+  .fold .hint{margin-top:5px}
+  .pv-side .events-wrap{max-height:210px;background:#fff;margin-top:8px}
+  .pv-side .btn-row{margin-top:8px}
+  .code-section{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  .code-section .side-head{margin-bottom:6px}
+  .code-section .legend{margin-top:8px}
+  @media(max-width:1050px){
+    .grid{grid-template-columns:1fr}
+    .video-body{grid-template-columns:1fr}
+    .preview-layout{grid-template-columns:1fr}
+    .pv-side{border-right:0;padding-right:0;border-bottom:1px solid var(--line);padding-bottom:12px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>棒球实时计分 · BAS 高级弹幕生成器</h1>
+    <div class="sub">按 <a href="https://bilibili.github.io/bas/#/guide" target="_blank">BAS 官方指南</a>（def text / def path / set / then / duration）生成；顶部「效果预览」把在线视频画面与 BAS 弹幕叠加显示，时间轴刻度与快捷打点紧贴播放器下方；左栏接「比赛数据」（分组可折叠）与事件表，右栏下方输出可粘贴的高级弹幕代码。已移除本地模型识别。</div>
+  </header>
+
+  <!-- ============ 效果预览：播放器 + 时间轴 + 手动打点（同区紧邻） ============ -->
+  <section class="card video-card">
+    <h2>效果预览（视频画面 + BAS 弹幕叠加 · 默认贴右下角）</h2>
+    <div class="body">
+      <div class="preview-layout">
+        <!-- 左栏：视频链接与时间同步设置 -->
+        <div class="pv-side">
+          <div class="video-only">
+          <div class="compact-title">在线视频 · 时间同步</div>
+          <div class="row"><label>B 站链接</label><input type="text" id="videoUrl" value="https://www.bilibili.com/video/BV19f4H6xE9B/" placeholder="https://www.bilibili.com/video/BV..."></div>
+          <div class="row"><label>解析结果</label><span class="video-meta" id="videoMeta">尚未解析链接</span></div>
+          <div class="row"><label>本地视频</label><input type="file" id="localVideoFile" accept="video/*" style="font-size:11.5px"></div>
+          <div class="row"><label>投放时间</label><input type="number" id="videoOffset" min="0" step="1" value="0" style="flex:0 0 88px"><span class="hint" style="margin:0;flex:1">弹幕出现在视频第几秒，事件自动前移对齐</span></div>
+          <div class="row"><label>视频时长</label><input type="number" id="videoDuration" min="1" step="1" value="1685" style="flex:0 0 88px"><span class="hint" style="margin:0;flex:1">秒，决定刻度上限与停留时长</span></div>
+          <div class="row"><label>当前视频秒</label><input type="text" id="videoTime" value="00:00" style="flex:0 0 96px"><button class="mini" id="btnSeek">跳转到该秒</button><span class="hint" style="margin:0;flex:1">支持 83 / 01:23 / 1:02:03</span></div>
+          <div class="btn-row">
+            <button class="mini primary" id="btnLoadVideo">解析并嵌入播放器</button>
+            <button class="mini" id="btnWatch">在原站打开</button>
+            <button class="mini" id="btnSampleTimeline">载入示例时间轴</button>
+            <button class="mini" id="btnExportJson">导出时间轴 JSON</button>
+            <button class="mini" id="btnImportJson">导入 JSON</button>
+            <button class="mini" id="btnAutoDuration">按视频设停留时长</button>
+            <input type="file" id="timelineFile" accept=".json,application/json" hidden>
+          </div>
+          <div class="video-status" id="videoStatus">粘贴 B 站链接后点「解析并嵌入播放器」；也可载入本地视频文件获得精确时间同步。</div>
+          <div class="player-bar" style="margin-top:10px">
+            <label><input type="checkbox" id="followVideo" checked> 预览跟随视频时间</label>
+            <span id="playerMode">在线播放器 · 手动同步时间</span>
+            <span class="hint" style="margin:0">若播放器空白，点「在原站打开」</span>
+          </div>
+          <p class="hint" style="margin-top:4px">在线播放器为跨域 iframe，无法读取播放进度：看播放器进度条 → 把时间填进「当前视频秒」→ 预览与刻度同步；点刻度 / 事件行 ⤴ 会重载播放器并跳到该秒。载入本地视频文件后改为自动同步 <code>currentTime</code>。</p>
+          <div class="stage-note">
+            <b>播放器就在此卡片右侧舞台</b>：视频画面铺满 16:9 舞台，BAS 记分弹幕叠加在画面之上（默认右下角）。<b>时间轴刻度与快捷打点紧贴播放器下方</b>，比赛数据与事件表收在左栏（分组可折叠），可边看画面边打点。舞台工具栏可关闭视频画面、降低亮度，或用工具栏「尺寸」滑杆把弹幕缩到 10%；弹幕层不拦截鼠标，播放器仍可正常操作。
+          </div>
+          <div class="ref">
+            <img src="reference-scoreboard.png" alt="参考图">
+            <p>参考图（原版）：ARI 4 / LAD 4、5 局下、满垒、0 出局、1-2 球数。<br>新版：右下角 B / S 两行记数、上垒菱形纯白。</p>
+          </div>
+          </div><!-- /video-only -->
+
+          <!-- 比赛数据：衔接在左侧栏视频设置下方，全部分组可折叠 -->
+          <div class="side-section" id="dataSection">
+            <div class="side-head"><span>比赛数据</span><button class="mini" id="btnFoldAll" type="button">全部展开</button></div>
+
+            <div class="fold" data-key="teams">
+              <button class="fold-head" type="button" aria-expanded="false">队伍与比分 <span class="chev">▾</span></button>
+              <div class="fold-body">
+                <div class="pair">
+                  <div class="row"><label>客队名称</label><input type="text" id="awayName" value="ARI" maxlength="8"></div>
+                  <div class="row"><label>客队比分</label><input type="number" id="awayScore" value="4" min="0" max="99"></div>
+                </div>
+                <div class="pair" style="margin-top:8px">
+                  <div class="row"><label>主队名称</label><input type="text" id="homeName" value="LAD" maxlength="8"></div>
+                  <div class="row"><label>主队比分</label><input type="number" id="homeScore" value="4" min="0" max="99"></div>
+                </div>
+                <p class="hint">队名建议 3 个字符以内；更长时会在生成时自动缩小字号，避免与右侧比分重叠。</p>
+              </div>
+            </div>
+
+            <div class="fold" data-key="colors">
+              <button class="fold-head" type="button" aria-expanded="false">配色（队伍底色 / 上垒高亮） <span class="chev">▾</span></button>
+              <div class="fold-body">
+                <div class="color-row"><label>客队行底色</label><input type="color" id="awayBg" value="#0b0b0c"><span class="swatch" id="vAwayBg">#0B0B0C</span></div>
+                <div class="color-row"><label>客队文字色</label><input type="color" id="awayFg" value="#ffffff"><span class="swatch" id="vAwayFg">#FFFFFF</span></div>
+                <div class="color-row"><label>主队行底色</label><input type="color" id="homeBg" value="#2c51c2"><span class="swatch" id="vHomeBg">#2C51C2</span></div>
+                <div class="color-row"><label>主队文字色</label><input type="color" id="homeFg" value="#ffffff"><span class="swatch" id="vHomeFg">#FFFFFF</span></div>
+                <div class="color-row"><label>上垒菱形色</label><input type="color" id="baseOn" value="#ffffff"><span class="swatch" id="vBaseOn">#FFFFFF</span></div>
+                <p class="hint">队伍名称所在行的底色与文字色可分别调整；有跑者上垒时菱形使用「上垒菱形色」，默认纯白对比最清楚。配色在生成时写入 <code>fillColor / color</code>，时间轴事件里保持不变。</p>
+              </div>
+            </div>
+
+            <div class="fold" data-key="inning">
+              <button class="fold-head" type="button" aria-expanded="false">局数与攻守 <span class="chev">▾</span></button>
+              <div class="fold-body">
+                <div class="row"><label>局数</label><input type="number" id="inning" value="5" min="1" max="30"></div>
+                <div class="row"><label>半局</label>
+                  <div class="radios">
+                    <label><input type="radio" name="half" value="top"> 上半局 ▲</label>
+                    <label><input type="radio" name="half" value="bottom" checked> 下半局 ▼</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="fold" data-key="bases">
+              <button class="fold-head" type="button" aria-expanded="false">垒上情况 <span class="chev">▾</span></button>
+              <div class="fold-body">
+                <div class="checks">
+                  <label><input type="checkbox" id="b1" checked> 一垒</label>
+                  <label><input type="checkbox" id="b2" checked> 二垒</label>
+                  <label><input type="checkbox" id="b3" checked> 三垒</label>
+                </div>
+                <p class="hint">白色（或自定义「上垒菱形色」）高亮菱形 = 该垒有跑者；暗色 = 空垒。</p>
+              </div>
+            </div>
+
+            <div class="fold" data-key="count">
+              <button class="fold-head" type="button" aria-expanded="false">出局数与球数 <span class="chev">▾</span></button>
+              <div class="fold-body">
+                <div class="row"><label>出局数 O</label><select id="outs"><option>0</option><option>1</option><option>2</option><option>3</option></select></div>
+                <div class="row"><label>坏球数 B</label><select id="balls"><option>0</option><option selected>1</option><option>2</option><option>3</option></select></div>
+                <div class="row"><label>好球数 S</label><select id="strikes"><option>0</option><option>1</option><option selected>2</option></select></div>
+                <p class="hint">原右下角 ABS 挑战次数圆圈模块已取消，改为「三坏两好」：<b>B</b> 行 3 颗圆点、<b>S</b> 行 2 颗圆点，两行各自独立记数并显示当前数字；右上角保留「B-S」球数总览。</p>
+              </div>
+            </div>
+
+            <div class="fold" data-key="position">
+              <button class="fold-head" type="button" aria-expanded="false">弹幕位置与时长 <span class="chev">▾</span></button>
+              <div class="fold-body">
+                <div class="row"><label>位置预设</label><select id="anchor">
+                  <option value="custom">自定义偏移</option>
+                  <option value="tl">左上角</option>
+                  <option value="tr">右上角</option>
+                  <option value="bl">左下角</option>
+                  <option value="br" selected>右下角</option>
+                </select></div>
+                <div class="size-presets">
+                  <span class="hint">尺寸预设</span>
+                  <button data-size="12">迷你 12%</button>
+                  <button data-size="18">小 18%</button>
+                  <button data-size="24">较小 24%</button>
+                  <button data-size="30">标准 30%</button>
+                  <button data-size="52">大 52%</button>
+                </div>
+                <div class="row"><label>宽度</label><input type="range" id="widthPct" min="10" max="80" step="1" value="52"><span class="val" id="vWidth">52%</span></div>
+                <div class="row"><label>水平 X</label><input type="range" id="xPct" min="0" max="95" step="1" value="3"><span class="val" id="vX">46%</span></div>
+                <div class="row"><label>垂直 Y</label><input type="range" id="yPct" min="0" max="90" step="1" value="4"><span class="val" id="vY">69%</span></div>
+                <div class="row"><label>停留时长</label><select id="duration"><option>30m</option><option>1h</option><option selected>2h</option><option>3h</option></select></div>
+                <p class="hint" id="posInfo">右下角：按宽度自动换算 X/Y，贴边留白 2%。</p>
+                <p class="hint">分数显示模块可缩到 <b>10%</b>（原下限 30%）：可直接拖动<b>播放器下方工具栏的「尺寸」滑杆</b>实时缩放，或点上面的尺寸预设一键切换；整块记分条与所有文字、圆点等比缩放，16:9 画面不变形。百分比以播放器窗口为基准，高度按 520:163 比例自动换算；选「右下角」后改宽度也不会跑出画面；切回「自定义偏移」可手动微调 X/Y（范围 95% / 90%）。</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 实时计分时间轴：宽度限制在左侧栏内，不越界到右侧模块 -->
+          <div class="side-section" id="timelineSection">
+            <div class="side-head"><span>实时计分时间轴（对照视频编辑）</span></div>
+            <p class="hint">按<b>视频绝对秒</b>填写；生成 BAS 时会按「投放时间」自动换算成弹幕相对秒，用 <code>then set</code> 串联。点每行的 ⤴ 可让播放器跳到该秒核对画面；拖动右侧时间轴或点刻度可查看各时刻状态。</p>
+            <div class="events-wrap">
+              <table class="events">
+                <thead><tr><th class="t">视频秒</th><th class="f">字段</th><th>值</th><th class="jump"></th><th class="jump"></th></tr></thead>
+                <tbody id="eventRows"></tbody>
+              </table>
+            </div>
+            <div class="btn-row">
+              <button class="mini" id="addEvent">＋ 添加事件</button>
+              <button class="mini" id="demoEvents">载入示例事件</button>
+              <button class="mini danger" id="clearEvents">清空</button>
+            </div>
+            <p class="hint" id="valueHint">半局填「上/下」；垒包、布尔字段填「1/0」；其余填数字或文字。</p>
+          </div>
+        </div>
+
+        <!-- 右栏：舞台 + 时间轴 + 手动打点 + BAS 代码 -->
+        <div class="pv-main">
+          <div class="stage" id="stage">
+            <div class="player-box" id="playerBox"></div>
+            <svg id="svgPreview" viewBox="0 0 1000 562.5" preserveAspectRatio="xMidYMid meet"></svg>
+            <div id="basLayer"></div>
+            <div class="stage-hint" id="stageHint">正在准备在线播放器…</div>
+            <div class="stage-tag" id="stageTag">BAS 预览</div>
+            <div class="stage-tag overlay" id="overlayTag">视频画面 + 弹幕叠加</div>
+          </div>
+
+          <div class="toolbar">
+            <label>视频第 <input type="range" id="previewTime" min="0" max="60" step="1" value="0"><span id="timeLabel">00:00</span></label>
+            <label>尺寸 <input type="range" id="sizeQuick" min="10" max="80" step="1" value="52" style="width:100px"><span id="vSizeQuick" class="val" style="min-width:38px">52%</span></label>
+            <label><input type="checkbox" id="showVideo" checked> 显示画面</label>
+            <label>亮度 <input type="range" id="videoBrightness" min="30" max="100" step="5" value="100" style="width:90px"><span id="vBrightness" class="val" style="min-width:38px">100%</span></label>
+            <label><input type="checkbox" id="engineToggle"> 真实 BAS 引擎</label>
+            <span id="defCount" class="val"></span>
+          </div>
+          <div class="status" id="status"></div>
+
+          <div class="timeline-bar" id="timelineBar" title="点击空白处或刻度可跳转到对应视频秒">
+            <span class="base"></span><span class="cursor" id="barCursor" style="left:0"></span>
+          </div>
+          <div class="cue-list" id="cueList"><span class="hint">时间轴为空；点下方快捷按钮即可在当前视频秒打点。</span></div>
+
+          <div class="punch">
+            <b>对照编辑 · 手动打点</b>：播放视频 → 把进度时间填到「当前视频秒」→ 用下面的按钮打点，事件按<b>视频绝对秒</b>写入左栏「实时计分时间轴」；生成时会按「投放时间」换算成弹幕相对秒。
+            <div class="quick">
+              <span>在 <b id="quickTime">00:00</b> 打点：</span>
+              <button data-quick="ball">坏球 +1</button>
+              <button data-quick="strike">好球 +1</button>
+              <button data-quick="out">出局 +1</button>
+              <button data-quick="away">客队 +1</button>
+              <button data-quick="home">主队 +1</button>
+              <button data-quick="b1">一垒切换</button>
+              <button data-quick="b2">二垒切换</button>
+              <button data-quick="b3">三垒切换</button>
+              <button data-quick="reset">打席重置</button>
+              <button data-quick="half">下一半局</button>
+              <button data-quick="clear">半局结束</button>
+            </div>
+            <div class="quick">
+              <span>自定义：</span>
+              <select id="quickField"></select>
+              <input type="text" id="quickValue" placeholder="新值">
+              <button class="mini primary" id="btnQuickAdd">＋ 添加事件</button>
+              <span class="hint" style="margin:0">半局填「上/下」，垒包填「1/0」，其余填数字或文字</span>
+            </div>
+            <div class="current-state" id="currentState">当前时刻状态：—</div>
+          </div>
+
+          <!-- BAS 代码输出：接在预览与打点下方 -->
+          <div class="code-section">
+            <div class="side-head"><span>BAS 代码输出与字段对照</span></div>
+            <div class="legend">
+              <b>字段对照</b>
+              <ul>
+                <li>左侧上下两行：客队 / 主队名称与比分，底色与文字色均可在左栏配色分组调整。</li>
+                <li>中左：局数 + 上下三角，白色三角表示当前半局。</li>
+                <li>中右：三个菱形为一、二、三垒（有人时纯白高亮）；下方三个小圆点为出局数。</li>
+                <li>右上：「坏球-好球」球数总览；<b>右下角独立两行</b>：上排深色 <b>B</b> 三颗（三坏）、下排蓝色 <b>S</b> 两颗（两好），白色圆点逐球点亮并显示当前数字，原 ABS 挑战次数圆圈已取消。</li>
+                <li>位置预设含右下角贴边（留白 2%），X/Y 按宽度与 520:163 比例自动换算；「尺寸预设」可把整块记分条缩到 10%～24% 的小尺寸。</li>
+              </ul>
+            </div>
+
+            <div class="codebar">
+              <button class="primary" id="btnRefresh">生成 / 刷新 BAS</button>
+              <button id="btnCopy">复制代码</button>
+              <button id="btnDownload">下载 .bas</button>
+              <button id="btnPlayground">在官方试验室打开</button>
+              <span class="grow"></span>
+              <span class="hint" id="codeInfo"></span>
+            </div>
+            <textarea id="codeOut" spellcheck="false" readonly></textarea>
+
+            <div class="foot">
+              使用方法：复制上方代码 → 在支持 BAS 的 B 站播放器「高级弹幕 / 代码弹幕」编辑器中粘贴并运行（需相应投稿权限）；或点「在官方试验室打开」直接调试。<br>
+              无时间轴事件时输出静态记分条，所有元素 <code>duration</code> 相同、常驻画面；有事件时按<b>视频绝对秒</b>记录，生成时按「投放时间」换算成弹幕相对秒，用 <code>then set</code> 依次更新文字与指示灯。<br>
+              左栏「在线视频 · 时间同步」可嵌入 B 站在线播放器（或载入本地视频文件）对照画面手工打点，时间轴刻度与事件表分别在右栏与左栏，支持刻度跳转、快捷事件、JSON 导入导出；示例视频画面无记分板，内置时间轴仅为演示数据。<br>
+              右下角 B / S 两行记数、队伍行配色（写入 <code>fillColor / color</code>）与四角定位（按宽度换算 X/Y 百分比）都会在生成时固化到脚本里；颜色不支持在时间轴中途切换（BAS 的 <code>path</code> 不能在 <code>set</code> 中改 <code>fillColor</code>）。
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="jquery.min.js"></script>
+<script src="bas-engine.js"></script>
+<script src="scorebug-generator.js"></script>
+<script src="video-timeline.js"></script>
+<script>
+(function(){
+  var G = window.ScorebugBAS;
+  var V = window.ScorebugVideoTimeline;
+  var $ = window.jQuery;
+  var els = {};
+  ['awayName','awayScore','homeName','homeScore','inning','outs','balls','strikes',
+   'b1','b2','b3','widthPct','xPct','yPct','anchor','duration','eventRows','previewTime',
+   'awayBg','awayFg','homeBg','homeFg','baseOn',
+   'videoUrl','videoMeta','videoOffset','videoDuration','videoTime','videoStatus',
+   'playerBox','stageHint','playerMode','followVideo','timelineBar','cueList',
+   'currentState','quickTime','quickField','quickValue','localVideoFile','timelineFile',
+   'svgPreview','basLayer','stage','status','codeOut','engineToggle','timeLabel',
+   'sizeQuick','vSizeQuick','showVideo','videoBrightness','vBrightness','overlayTag',
+   'vWidth','vX','vY','vAwayBg','vAwayFg','vHomeBg','vHomeFg','vBaseOn','posInfo',
+   'defCount','codeInfo','stageTag','valueHint'].forEach(function(id){ els[id] = document.getElementById(id); });
+
+  /* 播放器状态 */
+  var playerMode = 'none';       // none | online | local
+  var playerInfo = null;         // parseBiliUrl 结果
+  var videoEl = null;
+  var currentSec = 0;
+  var lastRenderSec = -1;
+  var videoActive = false;       // 是否已嵌入视频（决定预览时间轴上限）
+
+  function val(id){ return els[id].value; }
+  function num(id){ return parseInt(val(id), 10) || 0; }
+  function collectState(){
+    return {
+      awayName: val('awayName') || 'AWAY', homeName: val('homeName') || 'HOME',
+      awayScore: num('awayScore'), homeScore: num('homeScore'),
+      inning: Math.max(1, num('inning')) || 1,
+      half: document.querySelector('input[name=half]:checked').value,
+      b1: els.b1.checked ? 1 : 0, b2: els.b2.checked ? 1 : 0, b3: els.b3.checked ? 1 : 0,
+      outs: num('outs'), balls: num('balls'), strikes: num('strikes')
+    };
+  }
+  function collectOptions(){
+    return {
+      widthPct: num('widthPct'), xPct: num('xPct'), yPct: num('yPct'),
+      anchor: val('anchor'), marginPct: 2, duration: val('duration'),
+      awayBg: val('awayBg'), awayFg: val('awayFg'),
+      homeBg: val('homeBg'), homeFg: val('homeFg'), baseOn: val('baseOn')
+    };
+  }
+  function collectEvents(){
+    var rows = [];
+    Array.prototype.forEach.call(els.eventRows.querySelectorAll('tr'), function(tr){
+      var t = tr.querySelector('.ev-t').value;
+      var f = tr.querySelector('.ev-f').value;
+      var v = tr.querySelector('.ev-v').value;
+      if (t !== '' && v !== '') rows.push({ t: Number(t), field: f, value: v });
+    });
+    return rows.sort(function(a,b){ return a.t - b.t; });
+  }
+  function fmtTime(t){
+    t = Math.max(0, Math.round(t));
+    return ('0' + Math.floor(t/60)).slice(-2) + ':' + ('0' + (t%60)).slice(-2);
+  }
+  function escapeHTML(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function setVideoStatus(msg, err){
+    els.videoStatus.textContent = msg;
+    els.videoStatus.className = 'video-status' + (err ? ' err' : '');
+  }
+  function setSelectValue(sel, v){
+    v = String(v); var found = false;
+    Array.prototype.forEach.call(sel.options, function(o){ if (o.value === v) found = true; });
+    if (!found){ var op = document.createElement('option'); op.value = v; op.textContent = v; sel.appendChild(op); }
+    sel.value = v;
+  }
+  /* 舞台提示文字（无视频画面时显示，位于弹幕层之上但位于 SVG 背景之上） */
+  var stageHintText = '正在准备在线播放器…';
+  function setPlaceholder(text){
+    stageHintText = text;
+    els.stageHint.textContent = text;
+    return els.stageHint;
+  }
+  function stageHasVideo(){
+    return !!(els.playerBox.querySelector('iframe') || els.playerBox.querySelector('video'));
+  }
+  /* 视频画面与弹幕层的叠加开关 / 亮度 / 角标 */
+  function applyVideoLayer(reRender){
+    var on = els.showVideo.checked, has = stageHasVideo();
+    var visible = on && has;
+    var b = parseInt(els.videoBrightness.value, 10) || 100;
+    els.stage.classList.toggle('video-off', !on);
+    els.playerBox.style.filter = visible && b < 100 ? 'brightness(' + b + '%)' : '';
+    els.vBrightness.textContent = b + '%';
+    els.overlayTag.style.display = visible ? '' : 'none';
+    els.stageHint.style.display = visible ? 'none' : '';
+    els.stageHint.textContent = has
+      ? '视频画面已隐藏，仅显示 BAS 弹幕叠加效果；勾选「显示视频画面」可恢复。'
+      : stageHintText;
+    els.stageTag.textContent = (els.engineToggle.checked ? '真实 BAS 引擎渲染' : 'BAS 预览') +
+      (visible ? ' · 叠加视频' : '');
+    if (reRender) renderPreviewAt(currentSec);
+  }
+
+  /* ---------- 事件表 ---------- */
+  function addEventRow(t, field, value){
+    var tr = document.createElement('tr');
+    var fields = G.EVENT_FIELDS.map(function(f){
+      return '<option value="' + f.key + '"' + (f.key === field ? ' selected' : '') + '>' + f.label + '</option>';
+    }).join('');
+    tr.innerHTML =
+      '<td><input class="ev-t" type="number" min="0" step="0.001" value="' + (t === undefined ? 10 : t) + '"></td>' +
+      '<td><select class="ev-f">' + fields + '</select></td>' +
+      '<td><input class="ev-v" type="text" value="' + (value === undefined ? '' : String(value).replace(/"/g,'&quot;')) + '"></td>' +
+      '<td><button class="mini ev-jump" title="播放器跳到该秒">⤴</button></td>' +
+      '<td><button class="mini danger ev-del" title="删除">×</button></td>';
+    tr.querySelector('.ev-del').addEventListener('click', function(){ tr.remove(); refresh(); });
+    tr.querySelector('.ev-jump').addEventListener('click', function(){
+      seekVideo(Number(tr.querySelector('.ev-t').value) || 0);
+    });
+    tr.querySelectorAll('input,select').forEach(function(i){ i.addEventListener('input', refresh); });
+    els.eventRows.appendChild(tr);
+  }
+  function updateTimeRange(){
+    var evts = collectEvents();
+    var last = evts.length ? evts[evts.length-1].t + 20 : 60;
+    var vd = videoActive ? (parseInt(els.videoDuration.value, 10) || 0) : 0;
+    var max = Math.max(60, last, vd);
+    els.previewTime.max = max;
+    if (Number(els.previewTime.value) > max) els.previewTime.value = max;
+    els.timeLabel.textContent = fmtTime(Number(els.previewTime.value));
+  }
+  function alignedData(){
+    var state = collectState(), events = collectEvents();
+    var off = Math.max(0, Number(els.videoOffset.value) || 0);
+    return { initial: state, events: events, offset: off,
+             aligned: V.alignTimeline(state, events, off, G.applyPatch) };
+  }
+
+  /* ---------- 播放器 ---------- */
+  function renderVideoMeta(info){
+    if (!info || !info.valid){ els.videoMeta.textContent = (info && info.error) || '尚未解析链接'; return; }
+    var extra = '';
+    if (info.bvid === V.SAMPLE_VIDEO.bvid){
+      var v = V.SAMPLE_VIDEO, p = v.pages[info.page-1] || v.pages[0];
+      extra = ' · <b>' + escapeHTML(v.title) + '</b> · 「' + escapeHTML(p.part) + '」' +
+              p.duration + 's · ' + v.danmakuCues.length + ' 条弹幕线索 · 画面无记分板（手工打点）';
+    } else {
+      extra = ' · 非示例视频；时长请手动填写，局数比分对照画面编辑';
+    }
+    els.videoMeta.innerHTML = escapeHTML(info.bvid || ('av' + info.avid)) + ' · P' + info.page +
+      (info.startTime ? ' · 起始 ' + fmtTime(info.startTime) : '') + extra;
+  }
+  function loadOnlinePlayer(t){
+    var info = V.parseBiliUrl(els.videoUrl.value);
+    renderVideoMeta(info);
+    if (!info.valid){ setVideoStatus(info.error, true); return null; }
+    playerInfo = info; playerMode = 'online'; videoEl = null; videoActive = true;
+    if (info.bvid === V.SAMPLE_VIDEO.bvid){
+      var p = V.SAMPLE_VIDEO.pages[info.page-1] || V.SAMPLE_VIDEO.pages[0];
+      els.videoDuration.value = p.duration;
+      if (info.startTime && !t) t = info.startTime;
+    }
+    var src = V.buildPlayerSrc(info, t || 0, V.SAMPLE_VIDEO);
+    els.playerBox.innerHTML = '';
+    var f = document.createElement('iframe');
+    f.setAttribute('allowfullscreen', 'true');
+    f.setAttribute('scrolling', 'no');
+    f.setAttribute('frameborder', '0');
+    f.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
+    f.src = src;
+    els.playerBox.appendChild(f);
+    els.playerMode.textContent = '在线播放器 · 手动同步时间（' + (info.bvid || 'av' + info.avid) + ' P' + info.page + '）';
+    setVideoTime(t || 0, false);
+    setVideoStatus('已嵌入 ' + (info.bvid || 'av' + info.avid) + ' P' + info.page + ' 在线播放器。' +
+      '跨域 iframe 无法读取进度，请把播放器上的时间填进「当前视频秒」，或载入本地视频文件自动同步。');
+    updateTimeRange(); renderMarkers(); renderCueList(); renderCurrentState();
+    applyVideoLayer(); renderPreviewAt(currentSec);
+    return info;
+  }
+  function loadLocalVideo(file){
+    if (!file) return;
+    if (videoEl && videoEl.src && videoEl.src.indexOf('blob:') === 0) URL.revokeObjectURL(videoEl.src);
+    playerMode = 'local'; playerInfo = V.parseBiliUrl(els.videoUrl.value); videoActive = true;
+    els.playerBox.innerHTML = '';
+    videoEl = document.createElement('video');
+    videoEl.controls = true; videoEl.playsInline = true; videoEl.preload = 'metadata';
+    videoEl.src = URL.createObjectURL(file);
+    els.playerBox.appendChild(videoEl);
+    videoEl.addEventListener('loadedmetadata', function(){
+      if (videoEl.duration && isFinite(videoEl.duration)){
+        els.videoDuration.value = Math.round(videoEl.duration);
+        updateTimeRange(); renderMarkers();
+      }
+    });
+    videoEl.addEventListener('timeupdate', function(){ setVideoTime(videoEl.currentTime, true); });
+    videoEl.addEventListener('seeked', function(){ setVideoTime(videoEl.currentTime, false); });
+    els.playerMode.textContent = '本地视频 · 自动同步 currentTime';
+    setVideoStatus('已载入本地视频「' + escapeHTML(file.name) + '」：播放进度会自动同步到时间轴，跳转精确到秒。');
+    updateTimeRange(); renderMarkers(); renderCueList(); renderCurrentState();
+    applyVideoLayer(); renderPreviewAt(currentSec);
+  }
+  function setVideoTime(t, fromVideo){
+    t = Math.max(0, Number(t) || 0);
+    var changedSecond = Math.floor(t) !== Math.floor(currentSec);
+    currentSec = t;
+    if (!fromVideo) els.videoTime.value = V.formatTime(t);
+    else if (changedSecond) els.videoTime.value = V.formatTime(t);
+    els.quickTime.textContent = V.formatTime(t);
+    updateCursor();
+    if (els.followVideo.checked && (fromVideo ? Math.floor(t) !== lastRenderSec : true)){
+      lastRenderSec = Math.floor(t);
+      renderPreviewAt(t);
+    }
+    if (changedSecond || !fromVideo){ renderCueList(); renderCurrentState(); }
+  }
+  function seekVideo(t){
+    t = Math.max(0, Number(t) || 0);
+    setVideoTime(t, false);
+    if (playerMode === 'local' && videoEl){
+      try { videoEl.currentTime = t; } catch(e){}
+    } else if (playerMode === 'online' && playerInfo){
+      var src = V.buildPlayerSrc(playerInfo, t, V.SAMPLE_VIDEO);
+      var f = els.playerBox.querySelector('iframe');
+      if (f) f.src = src;
+    }
+    renderPreviewAt(t);
+    setVideoStatus('已跳到 ' + V.formatTime(t) + '（' + Math.round(t) + 's）。' +
+      (playerMode === 'online' ? '在线播放器通过重载带 t= 的地址跳转，可能有数秒缓冲。' : '本地视频已精确定位。'));
+  }
+  function renderPreviewAt(t){
+    var max = Number(els.previewTime.max) || 60;
+    els.previewTime.value = Math.min(max, Math.max(0, t));
+    var d = alignedData();
+    renderPreview(d.aligned.initial, collectOptions(), d.aligned.events, d.offset);
+  }
+
+  /* ---------- 时间轴刻度 / 邻近事件 ---------- */
+  function renderMarkers(){
+    var dur = Math.max(1, parseInt(els.videoDuration.value, 10) || 1685);
+    var off = Math.max(0, Number(els.videoOffset.value) || 0);
+    var ticks = collectEvents().map(function(e){
+      var pct = Math.max(0, Math.min(100, e.t / dur * 100));
+      return '<span class="tick" data-t="' + e.t + '" style="left:' + pct.toFixed(3) + '%" title="' +
+        V.formatTime(e.t) + ' · ' + escapeHTML(e.field) + ' → ' + escapeHTML(e.value) + '"></span>';
+    }).join('');
+    var offPct = Math.max(0, Math.min(100, off / dur * 100));
+    els.timelineBar.innerHTML =
+      '<span class="base"></span>' + ticks +
+      '<span class="offset" style="left:' + offPct.toFixed(3) + '%" title="投放时间 ' + V.formatTime(off) + '"></span>' +
+      '<span class="cursor" id="barCursor"></span>';
+    updateCursor();
+  }
+  function updateCursor(){
+    var dur = Math.max(1, parseInt(els.videoDuration.value, 10) || 1685);
+    var c = document.getElementById('barCursor');
+    if (c) c.style.left = Math.max(0, Math.min(100, currentSec / dur * 100)).toFixed(3) + '%';
+  }
+  function renderCueList(){
+    var evts = collectEvents();
+    if (!evts.length){
+      els.cueList.innerHTML = '<span class="hint">时间轴为空；点上方快捷按钮即可在当前视频秒打点。</span>';
+      return;
+    }
+    var before = evts.filter(function(e){ return e.t <= currentSec; }).slice(-4);
+    var after = evts.filter(function(e){ return e.t > currentSec; }).slice(0, 8);
+    var list = before.concat(after);
+    var head = '<span class="hint">当前 ' + fmtTime(currentSec) + ' 附近事件（共 ' + evts.length + ' 条，点击跳转）：</span> ';
+    els.cueList.innerHTML = head + list.map(function(e){
+      return '<span class="cue' + (e.t <= currentSec ? ' past' : '') + '" data-t="' + e.t + '">' +
+        fmtTime(e.t) + ' ' + escapeHTML(e.field) + '→' + escapeHTML(e.value) + '</span>';
+    }).join('');
+  }
+  function renderCurrentState(){
+    var s = G.stateAtTime(collectState(), collectEvents(), currentSec);
+    els.currentState.innerHTML = '<b>' + fmtTime(currentSec) + '</b> 时刻：' +
+      escapeHTML(s.awayName) + ' ' + s.awayScore + ' : ' + s.homeScore + ' ' + escapeHTML(s.homeName) +
+      ' · 第 ' + s.inning + ' 局' + (s.half === 'top' ? '上' : '下') +
+      ' · ' + s.balls + '-' + s.strikes + ' · ' + s.outs + ' 出局' +
+      ' · 垒包 ' + (s.b1 ? '1' : '-') + (s.b2 ? '2' : '-') + (s.b3 ? '3' : '-');
+  }
+
+  /* ---------- 快捷打点 ---------- */
+  var QUICK = {
+    ball:    function(s){ return [{ field:'balls', value: Math.min(3, (s.balls||0)+1) }]; },
+    strike:  function(s){ return [{ field:'strikes', value: Math.min(2, (s.strikes||0)+1) }]; },
+    out:     function(s){ return [{ field:'outs', value: Math.min(3, (s.outs||0)+1) }]; },
+    away:    function(s){ return [{ field:'awayScore', value: (s.awayScore||0)+1 }]; },
+    home:    function(s){ return [{ field:'homeScore', value: (s.homeScore||0)+1 }]; },
+    b1:      function(s){ return [{ field:'b1', value: s.b1 ? 0 : 1 }]; },
+    b2:      function(s){ return [{ field:'b2', value: s.b2 ? 0 : 1 }]; },
+    b3:      function(s){ return [{ field:'b3', value: s.b3 ? 0 : 1 }]; },
+    reset:   function(){ return [{ field:'balls', value:0 }, { field:'strikes', value:0 }]; },
+    half:    function(s){
+      return s.half === 'top'
+        ? [{ field:'half', value:'下' }]
+        : [{ field:'inning', value: (s.inning||1)+1 }, { field:'half', value:'上' }];
+    },
+    clear:   function(){ return [
+      { field:'outs', value:0 }, { field:'balls', value:0 }, { field:'strikes', value:0 },
+      { field:'b1', value:0 }, { field:'b2', value:0 }, { field:'b3', value:0 }
+    ]; }
+  };
+  function addQuickEvents(list){
+    if (!list.length) return;
+    list.forEach(function(e){ addEventRow(currentSec, e.field, e.value); });
+    refresh();
+    setVideoStatus('已在 ' + fmtTime(currentSec) + ' 写入 ' + list.length + ' 条事件（视频绝对秒）。');
+  }
+  function runQuick(key){
+    var s = G.stateAtTime(collectState(), collectEvents(), currentSec);
+    addQuickEvents(QUICK[key](s));
+  }
+
+  /* ---------- 时间轴 JSON / 示例 ---------- */
+  function applyInitialToForm(s){
+    els.awayName.value = s.awayName; els.homeName.value = s.homeName;
+    els.awayScore.value = s.awayScore; els.homeScore.value = s.homeScore;
+    els.inning.value = s.inning;
+    Array.prototype.forEach.call(document.querySelectorAll('input[name=half]'), function(r){
+      r.checked = (r.value === (s.half === 'top' ? 'top' : 'bottom'));
+    });
+    els.b1.checked = !!s.b1; els.b2.checked = !!s.b2; els.b3.checked = !!s.b3;
+    setSelectValue(els.outs, s.outs); setSelectValue(els.balls, s.balls); setSelectValue(els.strikes, s.strikes);
+  }
+  function autoSetDuration(){
+    var off = Math.max(0, parseInt(els.videoOffset.value, 10) || 0);
+    var dur = Math.max(1, (parseInt(els.videoDuration.value, 10) || 1685) - off);
+    setSelectValue(els.duration, Math.max(5, Math.ceil(dur / 300) * 5) + 'm');
+  }
+  function applyTimelineToForm(r, autoDur, doRefresh){
+    if (r.video && r.video.duration) els.videoDuration.value = r.video.duration;
+    if (r.video && r.video.url) els.videoUrl.value = r.video.url;
+    applyInitialToForm(r.initial);
+    els.eventRows.innerHTML = '';
+    r.events.forEach(function(e){ addEventRow(e.t, e.field, e.value); });
+    videoActive = true;
+    if (autoDur) autoSetDuration();
+    updateTimeRange();
+    var off = Math.max(0, parseInt(els.videoOffset.value, 10) || 0);
+    var al = V.alignTimeline(collectState(), collectEvents(), off, G.applyPatch);
+    setVideoStatus('已应用 ' + r.events.length + ' 个视频事件；投放 ' + fmtTime(off) + ' 时，' +
+      al.absorbed + ' 个变化并入初始状态，其余 ' + al.events.length + ' 个换算为弹幕相对秒。');
+    if (doRefresh !== false) refresh();
+  }
+  function loadSampleTimeline(){
+    var raw = V.buildSampleTimeline();
+    var r = V.normalizeTimeline(raw);
+    if (playerMode === 'none' && location.search.indexOf('noplayer=1') < 0) loadOnlinePlayer(0);
+    applyTimelineToForm(r, true, false);
+    setVideoStatus('已载入示例时间轴（' + r.events.length + ' 个事件，' + V.SAMPLE_VIDEO.title + ' P1）。' +
+      '注意：该视频画面无记分板，此为按片长与弹幕线索编排的占位数据，非真实比赛统计，请对照播放器画面自行修改。');
+  }
+  function exportTimelineJson(){
+    var info = playerInfo || V.parseBiliUrl(els.videoUrl.value);
+    var meta = { bvid: info.bvid || '', avid: info.avid || '', page: info.page || 1,
+                 duration: parseInt(els.videoDuration.value, 10) || 0,
+                 url: info.raw || els.videoUrl.value, title: V.SAMPLE_VIDEO.title };
+    var data = V.exportTimeline(collectState(), collectEvents(), meta);
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = '视频时间轴.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    setVideoStatus('已导出 ' + data.events.length + ' 个事件到 视频时间轴.json。');
+  }
+
+  /* ---------- BAS 引擎 ---------- */
+  var engine = null, engineStart = 0;
+  function destroyEngine(){
+    if (engine){
+      try { engine.clear(); engine.pause(); } catch(e){}
+      engine = null;
+    }
+    els.basLayer.innerHTML = '';
+  }
+  function initEngine(code){
+    destroyEngine();
+    if (!window.BasDanmaku || !$){ setStatus('本地 BAS 引擎未加载，已回退到 SVG 预览。', true); return; }
+    try {
+      engineStart = performance.now();
+      engine = new window.BasDanmaku({
+        container: els.basLayer,
+        timeSyncFunc: function(){ return performance.now() - engineStart; }
+      });
+      /* 本地 file:// 预览时 Blob Worker 可能被浏览器拦截，改用引擎自带的主线程解析器 */
+      engine.workerDisabled = true;
+      engine.play();
+      engine.add({
+        dm: { stime: 0, text: code },
+        test: true,
+        success: function(){ setStatus('BAS 引擎解析成功，正在真实渲染。'); },
+        error: function(msg){ setStatus('BAS 解析失败：' + msg, true); }
+      });
+    } catch(e){ setStatus('BAS 引擎初始化失败：' + e.message, true); }
+  }
+  function setStatus(msg, err){
+    els.status.textContent = msg;
+    els.status.className = 'status' + (err ? ' err' : '');
+  }
+
+  /* ---------- 主刷新 ---------- */
+  var currentCode = '';
+  function refresh(){
+    var d = alignedData(), opts = collectOptions(), events = d.events, a = d.aligned;
+    var pos = G.effectivePosition(opts);
+    var px = Math.round(pos.x * 10) / 10, py = Math.round(pos.y * 10) / 10;
+    var anchorNames = { custom: '自定义偏移', tl: '左上角', tr: '右上角', bl: '左下角', br: '右下角' };
+    els.vWidth.textContent = opts.widthPct + '%';
+    els.sizeQuick.value = opts.widthPct;
+    els.vSizeQuick.textContent = opts.widthPct + '%';
+    document.querySelectorAll('.size-presets button[data-size]').forEach(function(b){
+      b.classList.toggle('active', Number(b.getAttribute('data-size')) === opts.widthPct);
+    });
+    els.vX.textContent = px + '%';
+    els.vY.textContent = py + '%';
+    els.posInfo.textContent = (anchorNames[opts.anchor] || '自定义偏移') + '：实际 X ' + px + '% / Y ' + py +
+      '%，占高 ' + (Math.round(pos.h * 10) / 10) + '%' +
+      (opts.anchor === 'custom' ? '（手动偏移）。' : '，贴边留白 ' + opts.marginPct + '%。');
+    els.xPct.disabled = els.yPct.disabled = (opts.anchor !== 'custom');
+    if (opts.anchor !== 'custom') {
+      els.xPct.value = Math.round(pos.x);
+      els.yPct.value = Math.round(pos.y);
+    }
+    ['awayBg','awayFg','homeBg','homeFg','baseOn'].forEach(function(k){
+      var sw = els['v' + k.charAt(0).toUpperCase() + k.slice(1)];
+      if (sw) sw.textContent = String(val(k)).toUpperCase();
+    });
+    updateTimeRange();
+    renderPreview(a.initial, opts, a.events, d.offset);
+    currentCode = G.generateBAS(a.initial, opts, a.events);
+    els.codeOut.value = currentCode;
+    var defs = (currentCode.match(/^def /gm) || []).length;
+    els.defCount.textContent = defs + ' 个对象';
+    els.codeInfo.textContent = currentCode.length + ' 字符 · ' +
+      (events.length ? events.length + ' 个视频事件（对齐后 ' + a.events.length + '）' : '静态脚本');
+    els.stage.classList.toggle('engine-on', els.engineToggle.checked);
+    applyVideoLayer();
+    if (els.engineToggle.checked) initEngine(currentCode);
+    else { destroyEngine(); setStatus('已生成 BAS 脚本（' + defs + ' 个 def 对象，' + (events.length ? events.length + ' 个更新事件' : '静态常驻') + '，投放 ' + fmtTime(d.offset) + '）。'); }
+    renderMarkers(); renderCueList(); renderCurrentState();
+  }
+  function renderPreview(state, opts, events, offset){
+    var t = Number(els.previewTime.value);
+    var shown = G.stateAtTime(state, events, Math.max(0, t - (offset || 0)));
+    /* 有视频画面时 SVG 只输出记分条，透明背景让视频透出来 */
+    var fieldBg = !(els.showVideo.checked && stageHasVideo());
+    els.svgPreview.innerHTML = G.renderSVG(shown, opts, { fieldBg: fieldBg });
+    els.timeLabel.textContent = fmtTime(t);
+  }
+
+  /* ---------- 事件绑定 ---------- */
+  document.querySelectorAll('input,select').forEach(function(el){
+    if (el.closest('#eventRows') || el.id === 'previewTime' || el.id === 'engineToggle' || el.id === 'sizeQuick') return;
+    if (el.id === 'showVideo' || el.id === 'videoBrightness') return; // 仅影响预览层，不重新生成 BAS
+    if (el.closest('.video-only') && el.type !== 'number') return; // 链接/时间码/文件不触发整体生成
+    if (el.closest('.punch')) return; // 快捷打点控件由独立逻辑处理
+    el.addEventListener('input', refresh);
+    el.addEventListener('change', refresh);
+  });
+  /* ---------- 比赛数据折叠分组（默认收起，保持左侧栏紧凑） ---------- */
+  var folds = Array.prototype.slice.call(document.querySelectorAll('.fold'));
+  var btnFoldAll = document.getElementById('btnFoldAll');
+  function syncFoldAll(){
+    btnFoldAll.textContent = folds.some(function(f){ return !f.classList.contains('open'); }) ? '全部展开' : '全部收起';
+  }
+  function setFold(f, open){
+    f.classList.toggle('open', open);
+    f.querySelector('.fold-head').setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  folds.forEach(function(f){
+    f.querySelector('.fold-head').addEventListener('click', function(){
+      setFold(f, !f.classList.contains('open'));
+      syncFoldAll();
+    });
+  });
+  btnFoldAll.addEventListener('click', function(){
+    var openAll = folds.some(function(f){ return !f.classList.contains('open'); });
+    folds.forEach(function(f){ setFold(f, openAll); });
+    syncFoldAll();
+  });
+  syncFoldAll();
+
+  els.showVideo.addEventListener('change', function(){ applyVideoLayer(true); });
+  els.videoBrightness.addEventListener('input', function(){ applyVideoLayer(false); });
+  els.previewTime.addEventListener('input', function(){
+    var t = Number(els.previewTime.value);
+    setVideoTime(t, false);
+    renderPreviewAt(t);
+  });
+  els.engineToggle.addEventListener('change', refresh);
+  els.sizeQuick.addEventListener('input', function(){
+    els.widthPct.value = els.sizeQuick.value;
+    refresh();
+  });
+  document.querySelectorAll('.size-presets button[data-size]').forEach(function(b){
+    b.addEventListener('click', function(){
+      els.widthPct.value = b.getAttribute('data-size');
+      refresh();
+    });
+  });
+  els.videoOffset.addEventListener('input', function(){
+    var d = alignedData();
+    setVideoStatus('投放 ' + fmtTime(d.offset) + '：' + d.aligned.absorbed +
+      ' 个事件并入初始状态，其余 ' + d.aligned.events.length + ' 个换算为弹幕相对秒。');
+  });
+  els.videoTime.addEventListener('change', function(){
+    var t = V.parseTimeCode(els.videoTime.value);
+    if (t === null){ setVideoStatus('时间码无法识别，请用 83 / 01:23 / 1:02:03 格式。', true); return; }
+    setVideoTime(t, false); renderPreviewAt(t);
+  });
+  els.videoTime.addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); els.videoTime.dispatchEvent(new Event('change', {bubbles:true})); }
+  });
+  els.followVideo.addEventListener('change', function(){
+    if (els.followVideo.checked) renderPreviewAt(currentSec);
+  });
+  els.timelineBar.addEventListener('click', function(e){
+    var tick = e.target.closest('.tick');
+    if (tick){ seekVideo(Number(tick.getAttribute('data-t'))); return; }
+    var rect = els.timelineBar.getBoundingClientRect();
+    var dur = Math.max(1, parseInt(els.videoDuration.value, 10) || 1685);
+    seekVideo(Math.round((e.clientX - rect.left) / rect.width * dur));
+  });
+  els.cueList.addEventListener('click', function(e){
+    var cue = e.target.closest('.cue');
+    if (cue) seekVideo(Number(cue.getAttribute('data-t')));
+  });
+  document.querySelectorAll('.quick button[data-quick]').forEach(function(b){
+    b.addEventListener('click', function(){ runQuick(b.getAttribute('data-quick')); });
+  });
+  els.quickField.innerHTML = G.EVENT_FIELDS.map(function(f){
+    return '<option value="' + f.key + '">' + f.label + '</option>';
+  }).join('');
+  document.getElementById('btnQuickAdd').addEventListener('click', function(){
+    var v = els.quickValue.value.trim();
+    if (!v){ setVideoStatus('请先填写自定义事件的新值。', true); return; }
+    addQuickEvents([{ field: els.quickField.value, value: v }]);
+  });
+  document.getElementById('btnRefresh').addEventListener('click', refresh);
+  document.getElementById('btnLoadVideo').addEventListener('click', function(){ loadOnlinePlayer(V.parseTimeCode(els.videoTime.value) || 0); });
+  document.getElementById('btnSeek').addEventListener('click', function(){
+    var t = V.parseTimeCode(els.videoTime.value);
+    if (t === null){ setVideoStatus('时间码无法识别，请用 83 / 01:23 / 1:02:03 格式。', true); return; }
+    seekVideo(t);
+  });
+  document.getElementById('btnWatch').addEventListener('click', function(){
+    var info = playerInfo || V.parseBiliUrl(els.videoUrl.value);
+    if (!info.valid){ setVideoStatus(info.error, true); return; }
+    window.open(V.buildWatchUrl(info, currentSec), '_blank');
+  });
+  document.getElementById('btnSampleTimeline').addEventListener('click', function(){
+    loadSampleTimeline(); refresh();
+  });
+  document.getElementById('btnExportJson').addEventListener('click', exportTimelineJson);
+  document.getElementById('btnImportJson').addEventListener('click', function(){ els.timelineFile.click(); });
+  document.getElementById('btnAutoDuration').addEventListener('click', function(){
+    autoSetDuration(); refresh();
+    setVideoStatus('已按视频时长与投放时间把停留时长设为 ' + els.duration.value + '。');
+  });
+  els.timelineFile.addEventListener('change', function(){
+    var f = els.timelineFile.files && els.timelineFile.files[0];
+    if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function(){
+      try {
+        var r = V.normalizeTimeline(String(rd.result));
+        applyTimelineToForm(r, false, true);
+        setVideoStatus('已导入 ' + f.name + '（' + r.events.length + ' 个事件）。' +
+          (r.unknownFields.length ? '已忽略未知字段：' + r.unknownFields.join(',') : ''));
+      } catch (e){ setVideoStatus('导入失败：' + e.message, true); }
+    };
+    rd.readAsText(f, 'utf-8');
+  });
+  els.localVideoFile.addEventListener('change', function(){
+    var f = els.localVideoFile.files && els.localVideoFile.files[0];
+    if (f) loadLocalVideo(f);
+  });
+  document.getElementById('addEvent').addEventListener('click', function(){
+    addEventRow(currentSec || 10, 'homeScore', ''); refresh();
+  });
+  document.getElementById('clearEvents').addEventListener('click', function(){ els.eventRows.innerHTML=''; refresh(); });
+  document.getElementById('demoEvents').addEventListener('click', function(){ loadDemoEvents(); refresh(); });
+  document.getElementById('btnCopy').addEventListener('click', function(){
+    els.codeOut.removeAttribute('readonly');
+    els.codeOut.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch(e){}
+    els.codeOut.setAttribute('readonly','readonly');
+    if (!ok && navigator.clipboard) navigator.clipboard.writeText(currentCode).then(function(){ setStatus('代码已复制。'); });
+    else setStatus(ok ? '代码已复制到剪贴板。' : '复制失败，请手动全选代码框内容。', !ok);
+  });
+  document.getElementById('btnDownload').addEventListener('click', function(){
+    var blob = new Blob([currentCode], {type:'text/plain;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '棒球实时计分.bas';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    setStatus('已下载 .bas 脚本。');
+  });
+  document.getElementById('btnPlayground').addEventListener('click', function(){
+    var url = 'https://bilibili.github.io/bas/#/playground?code=' + encodeURIComponent(currentCode);
+    window.open(url, '_blank');
+    setStatus('已在官方试验室打开；若代码过长导致 URL 截断，请改用「复制代码」手动粘贴。');
+  });
+
+  function loadDemoEvents(){
+    els.eventRows.innerHTML='';
+    addEventRow(12, 'strikes', '0');
+    addEventRow(12, 'balls', '0');
+    addEventRow(18, 'outs', '1');
+    addEventRow(26, 'homeScore', '5');
+    addEventRow(34, 'inning', '6');
+    addEventRow(34, 'half', '上');
+    addEventRow(42, 'b1', '0');
+    addEventRow(42, 'b2', '0');
+    addEventRow(42, 'b3', '1');
+    els.previewTime.value = 0;
+    setVideoTime(0, false);
+    updateTimeRange();
+  }
+
+  if (location.search.indexOf('events=1') >= 0) loadDemoEvents();
+  if (location.search.indexOf('engine=1') >= 0) els.engineToggle.checked = true;
+
+  /* 默认嵌入示例在线视频；?noplayer=1 可跳过（便于离线/自动化验证） */
+  if (location.search.indexOf('noplayer=1') < 0) loadOnlinePlayer(0);
+  else {
+    setPlaceholder('离线验证模式：未嵌入播放器。点「解析并嵌入播放器」加载 B 站在线视频，或选择本地视频文件；弹幕仍叠加显示在舞台右下角。');
+    els.playerMode.textContent = '未嵌入播放器 · 离线验证模式';
+    setVideoStatus('离线验证模式：不请求在线播放器，时间轴编辑、叠加预览与 BAS 生成均可正常使用。');
+  }
+  applyVideoLayer();
+  /* ?video=1：载入示例时间轴并应用，一键验证完整 BAS */
+  if (location.search.indexOf('video=1') >= 0) loadSampleTimeline();
+  else if (location.search.indexOf('events=1') < 0) addEventRow(10, 'homeScore', '');
+  renderVideoMeta(V.parseBiliUrl(els.videoUrl.value));
+  refresh();
+})();
+</script>
+</body>
+</html>

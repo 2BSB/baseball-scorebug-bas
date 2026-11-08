@@ -55,7 +55,10 @@
     awayFg: '#FFFFFF',   // 客队名称 / 比分文字色
     homeBg: '#2C51C2',   // 主队名称行底色（可变色）
     homeFg: '#FFFFFF',   // 主队名称 / 比分文字色
-    baseOn: '#FFFFFF'    // 上垒菱形高亮色（纯白更清楚）
+    baseOn: '#FFFFFF',   // 上垒菱形高亮色（纯白更清楚）
+    fontScale: 100,      // 全部文字字号百分比
+    nameScoreScale: 100, // 队名 / 比分字号百分比（两位数比分防挤）
+    autoFit: true        // 队名与比分超宽时自动缩小，留出间隙
   };
 
   var EVENT_FIELDS = [
@@ -248,16 +251,74 @@
   function by(u, o) { return toPercent(o.effY + u * o.heightPct / BOARD_H); }
   function fs(u, o) { return toPercent(u * o.widthPct / BOARD_W); }
 
+  /* ---------- 字号：可调缩放 + 队名/比分两位数自动避让 ---------- */
+  var TEXT_BY_ID = {};
+  TEXT_DEFS.forEach(function (t) { TEXT_BY_ID[t.id] = t; });
+  var ROW_LEFT = 10, ROW_RIGHT = 158, MIN_GAP = 20;  // 队名左锚点 / 比分右锚点 / 目标最小间隙
+  /* 20 是安全上限：队名 3 字 + 比分 1 位的估算宽 = 125.2 < 148-20 = 128，
+     所以一位数比分仍保持原始字号，默认脚本逐字节不变；两位数才触发缩小。 */
+  var NAME_W = 0.66, DIGIT_W = 0.58;                 // Arial Bold 粗估单字宽 / 字号
+
+  function isName(t) { return t.id === 'tAwayName' || t.id === 'tHomeName'; }
+  function isScore(t) { return t.id === 'tAwayScore' || t.id === 'tHomeScore'; }
+  function clampScale(v, dflt) {
+    var x = Number(v);
+    if (!isFinite(x) || x <= 0) x = dflt;
+    return Math.max(60, Math.min(140, x));
+  }
+  function baseTextSize(t, s, o) {
+    var size = t.size * o.fontScale / 100;
+    if (isName(t) || isScore(t)) size *= o.nameScoreScale / 100;
+    if (isName(t)) {
+      var name = String(t.id === 'tAwayName' ? s.awayName : s.homeName);
+      if (name.length > 3) size = Math.max(20, size * 3 / name.length);
+    }
+    return size;
+  }
+  /* 一行里「队名 + 比分」的估算宽度超出可用宽度时，两者一起等比缩小 */
+  function rowFit(s, o, away) {
+    if (!o.autoFit) return 1;
+    var nT = TEXT_BY_ID[away ? 'tAwayName' : 'tHomeName'];
+    var cT = TEXT_BY_ID[away ? 'tAwayScore' : 'tHomeScore'];
+    var name = String(away ? s.awayName : s.homeName);
+    var score = String(away ? s.awayScore : s.homeScore);
+    var w = name.length * NAME_W * baseTextSize(nT, s, o) +
+            score.length * DIGIT_W * baseTextSize(cT, s, o);
+    var avail = ROW_RIGHT - ROW_LEFT - MIN_GAP;
+    return w > avail ? Math.max(0.55, avail / w) : 1;
+  }
+  function textSize(t, s, o) {
+    var size = baseTextSize(t, s, o);
+    if (isName(t) || isScore(t)) size *= rowFit(s, o, /Away/.test(t.id));
+    return Math.round(size * 10) / 10;
+  }
+  /* BAS 的 fontSize 写在 def 里、时间轴只能改 content，所以按所有快照中
+     「队名最长 / 比分位数最多」的状态固化字号，保证后续变成两位数时也不会挤。 */
+  function worstFitState(initial, events) {
+    var s = Object.assign({}, initial);
+    buildSnapshots(initial, events).forEach(function (snap) {
+      var st = snap.state;
+      if (String(st.awayName).length > String(s.awayName).length) s.awayName = st.awayName;
+      if (String(st.homeName).length > String(s.homeName).length) s.homeName = st.homeName;
+      if (String(st.awayScore).length > String(s.awayScore).length) s.awayScore = st.awayScore;
+      if (String(st.homeScore).length > String(s.homeScore).length) s.homeScore = st.homeScore;
+    });
+    return s;
+  }
+  function fontSizes(state, options) {
+    var s = Object.assign({}, DEFAULT_STATE, state || {});
+    var o = normalizeOptions(options);
+    return {
+      awayName: textSize(TEXT_BY_ID.tAwayName, s, o),
+      awayScore: textSize(TEXT_BY_ID.tAwayScore, s, o),
+      homeName: textSize(TEXT_BY_ID.tHomeName, s, o),
+      homeScore: textSize(TEXT_BY_ID.tHomeScore, s, o)
+    };
+  }
+
   /* ---------- BAS 脚本生成 ---------- */
   function shapeColor(sh, o) { return sh.ck ? o[sh.ck] : sh.color; }
   function textColor(t, o) { return t.ck ? o[t.ck] : t.color; }
-  /* 队名超过 3 个字符时按比例缩小字号，避免与右侧比分重叠（生成时固化） */
-  function textSize(t, s) {
-    if (t.id !== 'tAwayName' && t.id !== 'tHomeName') return t.size;
-    var name = String(t.id === 'tAwayName' ? s.awayName : s.homeName);
-    if (name.length <= 3) return t.size;
-    return Math.max(20, Math.round(t.size * 3 / name.length));
-  }
 
   function pathDef(shape, o, alpha) {
     var L = [];
@@ -280,7 +341,7 @@
     return L.join('\n');
   }
 
-  function textDef(t, state, o) {
+  function textDef(t, state, o, fitState) {
     var L = [];
     L.push('def text ' + t.id + ' {');
     L.push('    content = ' + basString(t.get(state)));
@@ -288,7 +349,8 @@
     L.push('    y = ' + by(t.y, o));
     L.push('    anchorX = ' + t.ax);
     L.push('    anchorY = 0.5');
-    L.push('    fontSize = ' + fs(textSize(t, state), o));
+    /* content 取当前状态，fontSize 取时间轴最宽状态（生成时固化） */
+    L.push('    fontSize = ' + fs(textSize(t, fitState || state, o), o));
     L.push('    fontFamily = "Arial"');
     L.push('    color = ' + hexNum(textColor(t, o)));
     L.push('    bold = 1');
@@ -312,7 +374,11 @@
       cAwayFg: parseColor(o.awayFg, 0xFFFFFF),
       cHomeBg: parseColor(o.homeBg, 0x2C51C2),
       cHomeFg: parseColor(o.homeFg, 0xFFFFFF),
-      cBaseOn: parseColor(o.baseOn, 0xFFFFFF)
+      cBaseOn: parseColor(o.baseOn, 0xFFFFFF),
+      fontScale: clampScale(o.fontScale, 100),
+      nameScoreScale: clampScale(o.nameScoreScale, 100),
+      autoFit: o.autoFit === undefined ? true :
+        (o.autoFit === true || o.autoFit === 1 || o.autoFit === '1' || o.autoFit === 'true')
     };
     var p = effectivePosition(r);
     r.effX = p.x; r.effY = p.y; r.heightPct = p.h;
@@ -378,11 +444,12 @@
     var s = Object.assign({}, DEFAULT_STATE, state || {});
     var o = normalizeOptions(options);
     var alphas = overlayAlphas(s);
+    var fitState = worstFitState(s, events || []);
     var blocks = [];
 
     STATIC_SHAPES.forEach(function (sh) { blocks.push(pathDef(sh, o)); });
     OVERLAY_SHAPES.forEach(function (sh) { blocks.push(pathDef(sh, o, alphas[sh.key])); });
-    TEXT_DEFS.forEach(function (t) { blocks.push(textDef(t, s, o)); });
+    TEXT_DEFS.forEach(function (t) { blocks.push(textDef(t, s, o, fitState)); });
 
     return blocks.join('\n\n') + '\n' + generateChains(s, events || []);
   }
@@ -393,6 +460,7 @@
     var s = Object.assign({}, DEFAULT_STATE, state || {});
     var o = normalizeOptions(options);
     var fieldBg = !preview || preview.fieldBg !== false;
+    var fitState = (preview && preview.fitState) || s;
     var scale = o.widthPct / 52;
     var tx = o.effX * 10, ty = o.effY * 5.625;
     var alphas = overlayAlphas(s);
@@ -413,7 +481,7 @@
     OVERLAY_SHAPES.forEach(function (sh) { out.push(svgPath(sh, alphas[sh.key], o)); });
     TEXT_DEFS.forEach(function (t) {
       var anchor = t.ax === 0 ? 'start' : (t.ax === 1 ? 'end' : 'middle');
-      out.push('<text x="' + t.x + '" y="' + t.y + '" font-size="' + textSize(t, s) + '" font-family="Arial, Helvetica, sans-serif" font-weight="bold" fill="' + hex(textColor(t, o)) + '" text-anchor="' + anchor + '" dominant-baseline="central">' + escapeXML(t.get(s)) + '</text>');
+      out.push('<text x="' + t.x + '" y="' + t.y + '" font-size="' + textSize(t, fitState, o) + '" font-family="Arial, Helvetica, sans-serif" font-weight="bold" fill="' + hex(textColor(t, o)) + '" text-anchor="' + anchor + '" dominant-baseline="central">' + escapeXML(t.get(s)) + '</text>');
     });
     out.push('</g>');
     return out.join('\n');
@@ -448,6 +516,8 @@
     overlayAlphas: overlayAlphas,
     effectivePosition: effectivePosition,
     heightPct: heightPct,
+    fontSizes: fontSizes,
+    worstFitState: worstFitState,
     hex: hex
   };
 });

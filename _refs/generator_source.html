@@ -233,7 +233,24 @@
                   <div class="row"><label>主队名称</label><input type="text" id="homeName" value="LAD" maxlength="8"></div>
                   <div class="row"><label>主队比分</label><input type="number" id="homeScore" value="4" min="0" max="99"></div>
                 </div>
-                <p class="hint">队名建议 3 个字符以内；更长时会在生成时自动缩小字号，避免与右侧比分重叠。</p>
+                <p class="hint">队名建议 3 个字符以内；更长时会在生成时自动缩小字号，避免与右侧比分重叠。比分到两位数时，可在下方「字体大小」里自动或手动留出间隙。</p>
+              </div>
+            </div>
+
+            <div class="fold" data-key="fonts">
+              <button class="fold-head" type="button" aria-expanded="false">字体大小（两位数比分防挤） <span class="chev">▾</span></button>
+              <div class="fold-body">
+                <div class="row"><label>整体字号</label><input type="range" id="fontScale" min="60" max="140" step="5" value="100"><span class="val" id="vFontScale">100%</span></div>
+                <div class="row"><label>队名/比分</label><input type="range" id="nameScoreScale" min="60" max="140" step="5" value="100"><span class="val" id="vNameScoreScale">100%</span></div>
+                <div class="checks" style="margin:6px 0 2px"><label><input type="checkbox" id="autoFit" checked> 两位数自动避让</label></div>
+                <div class="size-presets">
+                  <span class="hint">字号预设</span>
+                  <button data-font="80">紧凑 80%</button>
+                  <button data-font="100">标准 100%</button>
+                  <button data-font="120">放大 120%</button>
+                </div>
+                <p class="hint" id="fontInfo">当前队名 / 比分实际字号：客队 48 / 52，主队 48 / 52（记分条内部像素）。</p>
+                <p class="hint">比分达到两位数（≥10）时容易和队名贴在一起：开启「两位数自动避让」会按「队名宽 + 比分宽 + 预留间隙」等比缩小该行两个文字，其他文字不变；时间轴里后续出现两位数，也会按整段脚本的最大位数提前固化字号。想完全手动控制就关掉开关，用上面两个滑杆，或直接拖<b>播放器下方工具栏的「字号」滑杆</b>。「字号预设」与工具栏滑杆调整的是整体字号，「队名/比分」滑杆只影响这两行。自动避让开启时若把字号放大到会挤的程度，会被自动限幅（此时上方「实际字号」不变）；想强制放大请先关掉开关。字号在生成时写入 <code>fontSize</code>，时间轴里保持不变。</p>
               </div>
             </div>
 
@@ -345,6 +362,7 @@
           <div class="toolbar">
             <label>视频第 <input type="range" id="previewTime" min="0" max="60" step="1" value="0"><span id="timeLabel">00:00</span></label>
             <label>尺寸 <input type="range" id="sizeQuick" min="10" max="80" step="1" value="52" style="width:100px"><span id="vSizeQuick" class="val" style="min-width:38px">52%</span></label>
+            <label>字号 <input type="range" id="fontQuick" min="60" max="140" step="5" value="100" style="width:90px"><span id="vFontQuick" class="val" style="min-width:38px">100%</span></label>
             <label><input type="checkbox" id="showVideo" checked> 显示画面</label>
             <label>亮度 <input type="range" id="videoBrightness" min="30" max="100" step="5" value="100" style="width:90px"><span id="vBrightness" class="val" style="min-width:38px">100%</span></label>
             <label><input type="checkbox" id="engineToggle"> 真实 BAS 引擎</label>
@@ -394,6 +412,7 @@
                 <li>中右：三个菱形为一、二、三垒（有人时纯白高亮）；下方三个小圆点为出局数。</li>
                 <li>右上：「坏球-好球」球数总览；<b>右下角独立两行</b>：上排深色 <b>B</b> 三颗（三坏）、下排蓝色 <b>S</b> 两颗（两好），白色圆点逐球点亮并显示当前数字，原 ABS 挑战次数圆圈已取消。</li>
                 <li>位置预设含右下角贴边（留白 2%），X/Y 按宽度与 520:163 比例自动换算；「尺寸预设」可把整块记分条缩到 10%～24% 的小尺寸。</li>
+                <li>「字体大小」分组与舞台工具栏的「字号」滑杆可调全部文字或只调队名 / 比分；两位数比分默认自动缩小留间隙，<code>fontSize</code> 按时间轴里最宽的队名 / 比分固化。</li>
               </ul>
             </div>
 
@@ -411,7 +430,7 @@
               使用方法：复制上方代码 → 在支持 BAS 的 B 站播放器「高级弹幕 / 代码弹幕」编辑器中粘贴并运行（需相应投稿权限）；或点「在官方试验室打开」直接调试。<br>
               无时间轴事件时输出静态记分条，所有元素 <code>duration</code> 相同、常驻画面；有事件时按<b>视频绝对秒</b>记录，生成时按「投放时间」换算成弹幕相对秒，用 <code>then set</code> 依次更新文字与指示灯。<br>
               左栏「在线视频 · 时间同步」可嵌入 B 站在线播放器（或载入本地视频文件）对照画面手工打点，时间轴刻度与事件表分别在右栏与左栏，支持刻度跳转、快捷事件、JSON 导入导出；示例视频画面无记分板，内置时间轴仅为演示数据。<br>
-              右下角 B / S 两行记数、队伍行配色（写入 <code>fillColor / color</code>）与四角定位（按宽度换算 X/Y 百分比）都会在生成时固化到脚本里；颜色不支持在时间轴中途切换（BAS 的 <code>path</code> 不能在 <code>set</code> 中改 <code>fillColor</code>）。
+              右下角 B / S 两行记数、队伍行配色（写入 <code>fillColor / color</code>）、四角定位（按宽度换算 X/Y 百分比）与字号（写入 <code>fontSize</code>，按时间轴最宽状态固化）都会在生成时固化到脚本里；颜色与字号不支持在时间轴中途切换（BAS 的 <code>path</code> 不能在 <code>set</code> 中改 <code>fillColor</code>）。
             </div>
           </div>
         </div>
@@ -437,7 +456,9 @@
    'playerBox','stageHint','playerMode','followVideo','timelineBar','cueList',
    'currentState','quickTime','quickField','quickValue','localVideoFile','timelineFile',
    'svgPreview','basLayer','stage','status','codeOut','engineToggle','timeLabel',
-   'sizeQuick','vSizeQuick','showVideo','videoBrightness','vBrightness','overlayTag',
+   'sizeQuick','vSizeQuick','fontQuick','vFontQuick','fontScale','vFontScale',
+   'nameScoreScale','vNameScoreScale','autoFit','fontInfo',
+   'showVideo','videoBrightness','vBrightness','overlayTag',
    'vWidth','vX','vY','vAwayBg','vAwayFg','vHomeBg','vHomeFg','vBaseOn','posInfo',
    'defCount','codeInfo','stageTag','valueHint'].forEach(function(id){ els[id] = document.getElementById(id); });
 
@@ -466,7 +487,9 @@
       widthPct: num('widthPct'), xPct: num('xPct'), yPct: num('yPct'),
       anchor: val('anchor'), marginPct: 2, duration: val('duration'),
       awayBg: val('awayBg'), awayFg: val('awayFg'),
-      homeBg: val('homeBg'), homeFg: val('homeFg'), baseOn: val('baseOn')
+      homeBg: val('homeBg'), homeFg: val('homeFg'), baseOn: val('baseOn'),
+      fontScale: num('fontScale'), nameScoreScale: num('nameScoreScale'),
+      autoFit: els.autoFit.checked
     };
   }
   function collectEvents(){
@@ -834,6 +857,18 @@
     document.querySelectorAll('.size-presets button[data-size]').forEach(function(b){
       b.classList.toggle('active', Number(b.getAttribute('data-size')) === opts.widthPct);
     });
+    /* 字体大小：两处滑杆 + 预设 + 实际字号提示双向同步 */
+    els.fontQuick.value = opts.fontScale;
+    els.vFontQuick.textContent = opts.fontScale + '%';
+    els.vFontScale.textContent = opts.fontScale + '%';
+    els.vNameScoreScale.textContent = opts.nameScoreScale + '%';
+    document.querySelectorAll('.size-presets button[data-font]').forEach(function(b){
+      b.classList.toggle('active', Number(b.getAttribute('data-font')) === opts.fontScale);
+    });
+    var fz = G.fontSizes(G.worstFitState(a.initial, a.events), opts);
+    els.fontInfo.textContent = '当前队名 / 比分实际字号：客队 ' + fz.awayName + ' / ' + fz.awayScore +
+      '，主队 ' + fz.homeName + ' / ' + fz.homeScore + '（记分条内部像素，原始 48 / 52）' +
+      (opts.autoFit ? '；自动避让已开启。' : '；自动避让已关闭。');
     els.vX.textContent = px + '%';
     els.vY.textContent = py + '%';
     els.posInfo.textContent = (anchorNames[opts.anchor] || '自定义偏移') + '：实际 X ' + px + '% / Y ' + py +
@@ -867,13 +902,15 @@
     var shown = G.stateAtTime(state, events, Math.max(0, t - (offset || 0)));
     /* 有视频画面时 SVG 只输出记分条，透明背景让视频透出来 */
     var fieldBg = !(els.showVideo.checked && stageHasVideo());
-    els.svgPreview.innerHTML = G.renderSVG(shown, opts, { fieldBg: fieldBg });
+    var fitState = G.worstFitState(state, events);
+    els.svgPreview.innerHTML = G.renderSVG(shown, opts, { fieldBg: fieldBg, fitState: fitState });
     els.timeLabel.textContent = fmtTime(t);
   }
 
   /* ---------- 事件绑定 ---------- */
   document.querySelectorAll('input,select').forEach(function(el){
-    if (el.closest('#eventRows') || el.id === 'previewTime' || el.id === 'engineToggle' || el.id === 'sizeQuick') return;
+    if (el.closest('#eventRows') || el.id === 'previewTime' || el.id === 'engineToggle' ||
+        el.id === 'sizeQuick' || el.id === 'fontQuick') return;
     if (el.id === 'showVideo' || el.id === 'videoBrightness') return; // 仅影响预览层，不重新生成 BAS
     if (el.closest('.video-only') && el.type !== 'number') return; // 链接/时间码/文件不触发整体生成
     if (el.closest('.punch')) return; // 快捷打点控件由独立逻辑处理
@@ -915,9 +952,19 @@
     els.widthPct.value = els.sizeQuick.value;
     refresh();
   });
+  els.fontQuick.addEventListener('input', function(){
+    els.fontScale.value = els.fontQuick.value;
+    refresh();
+  });
   document.querySelectorAll('.size-presets button[data-size]').forEach(function(b){
     b.addEventListener('click', function(){
       els.widthPct.value = b.getAttribute('data-size');
+      refresh();
+    });
+  });
+  document.querySelectorAll('.size-presets button[data-font]').forEach(function(b){
+    b.addEventListener('click', function(){
+      els.fontScale.value = b.getAttribute('data-font');
       refresh();
     });
   });

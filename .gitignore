@@ -1,7 +1,24 @@
 # 工作区与临时产物（含无头 Chrome 缓存目录，约 500MB）
 .workbuddy/
+*.genie
 _refs/*
+# 放行构建模板、构建 / 验证脚本，其余 _refs 下的调试快照与截图一律不入库
 !_refs/generator_source.html
+!_refs/live_overlay_source.html
+!_refs/build_public_site.js
+!_refs/build_online_app.js
+!_refs/bake_relay.js
+!_refs/cdp_helper.js
+!_refs/capture_ui.js
+!_refs/verify_v21_layout.js
+!_refs/verify_v22_white.js
+!_refs/verify_v24_main.js
+!_refs/verify_v24_formats.js
+!_refs/verify_v24_relay.js
+!_refs/verify_v24_browser.js
+!_refs/verify_v25_cloud.js
+!_refs/verify_v25_online.js
+!_refs/verify_v26_author.js
 
 # 依赖与系统文件
 node_modules/

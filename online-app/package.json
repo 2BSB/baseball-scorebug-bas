@@ -1,0 +1,9 @@
+{
+  "name": "scorebug-live-relay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "棒球计分直播叠加层线上房间中继（零依赖、内存态、单端口）",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

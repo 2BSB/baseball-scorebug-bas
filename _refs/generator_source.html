@@ -16,6 +16,15 @@
   h1{font-size:23px;margin:0 0 6px;letter-spacing:.2px}
   .sub{color:var(--muted);font-size:13px}
   .sub a{color:var(--brand);text-decoration:none}
+  /* 项目作者与反馈入口：纯文字 + 超链接，不自动发起任何网络请求 */
+  .author-bar{margin-top:8px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;font-size:12.5px;color:var(--muted)}
+  .author-bar b{color:var(--text);font-weight:600}
+  footer.about{margin-top:20px;padding:14px 18px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(31,41,55,.05);font-size:12.5px;line-height:1.9;color:var(--muted)}
+  footer.about .about-title{color:var(--text);font-size:13.5px;font-weight:700;margin-bottom:4px}
+  footer.about b{color:var(--text);font-weight:600}
+  footer.about a{color:var(--brand);text-decoration:none}
+  footer.about a:hover{text-decoration:underline}
+  footer.about .about-note{margin-top:4px;font-size:11.5px;color:var(--muted)}
   .grid{display:grid;grid-template-columns:390px minmax(0,1fr);gap:18px;align-items:start}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(31,41,55,.05);overflow:hidden}
   .card h2{font-size:14px;margin:0;padding:13px 16px;border-bottom:1px solid var(--line);background:#fafbfc;font-weight:600}
@@ -166,10 +175,27 @@
   .code-section{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
   .code-section .side-head{margin-bottom:6px}
   .code-section .legend{margin-top:8px}
+  /* ===== 直播控制（线上可选连接） / 视频导出 ===== */
+  .local-tools{margin-top:18px}
+  .tool-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .tool-box{border:1px solid var(--line);border-radius:9px;background:#fafbfc;padding:11px 12px}
+  .tool-title{font-size:12.5px;font-weight:700;color:var(--brand);margin-bottom:6px}
+  .tool-box .hint{line-height:1.7}
+  .tool-box .btn-row{margin-top:8px}
+  .ctl-row{display:flex;gap:6px;align-items:center;margin:6px 0;flex-wrap:wrap}
+  .ctl-row > label{flex:0 0 62px;font-size:11.5px;color:var(--muted)}
+  .ctl-row input[type=text],.ctl-row select{flex:1;min-width:90px;font-size:12px;padding:5px 8px;font-family:Consolas,Menlo,monospace}
+  .ctl-row select{font-family:inherit}
+  .link-state{font-size:11.5px;color:var(--muted);margin-top:6px;min-height:18px;word-break:break-all}
+  .link-state.on{color:var(--ok)}
+  .link-state.off{color:var(--warn)}
+  .burn-bar{height:8px;border-radius:5px;background:#e6ebf3;border:1px solid var(--line);overflow:hidden;margin-top:9px}
+  .burn-bar span{display:block;height:100%;width:0;background:var(--brand);transition:width .2s}
   @media(max-width:1050px){
     .grid{grid-template-columns:1fr}
     .video-body{grid-template-columns:1fr}
     .preview-layout{grid-template-columns:1fr}
+    .tool-grid{grid-template-columns:1fr}
     .pv-side{border-right:0;padding-right:0;border-bottom:1px solid var(--line);padding-bottom:12px}
   }
 </style>
@@ -179,6 +205,7 @@
   <header>
     <h1>棒球实时计分 · BAS 高级弹幕生成器</h1>
     <div class="sub">按 <a href="https://bilibili.github.io/bas/#/guide" target="_blank">BAS 官方指南</a>（def text / def path / set / then / duration）生成；顶部「效果预览」把在线视频画面与 BAS 弹幕叠加显示，时间轴刻度与快捷打点紧贴播放器下方；左栏接「比赛数据」（分组可折叠）与事件表，右栏下方输出可粘贴的高级弹幕代码。已移除本地模型识别。</div>
+    <div class="sub author-bar"><span>项目作者：<b>狗王IB</b></span><span>B 站主页：<a href="https://space.bilibili.com/150585" target="_blank" rel="noopener noreferrer">https://space.bilibili.com/150585</a></span><span><a href="https://github.com/2BSB/baseball-scorebug-bas" target="_blank" rel="noopener noreferrer">GitHub 项目</a></span></div>
   </header>
 
   <!-- ============ 效果预览：播放器 + 时间轴 + 手动打点（同区紧邻） ============ -->
@@ -440,12 +467,73 @@
       </div>
     </div>
   </section>
+
+  <!-- ============ 直播控制（线上可选连接） / 视频导出 ============ -->
+  <section class="card local-tools">
+    <h2>直播控制与视频导出（线上实时控制需主动连接 · 视频与文件处理全在本机）</h2>
+    <div class="body">
+      <div class="tool-grid">
+        <div class="tool-box">
+          <div class="tool-title">① 线上直播叠加层（跨设备实时控制）</div>
+          <p class="hint">控制器与 OBS 浏览器源可以在不同设备。连接后本页改动按<b>房间号</b>实时推送给同房间叠加层，不同房间互不干扰。未连接时页面完全离线，也可用 URL 快照或本地文件独立运行。</p>
+          <div class="ctl-row"><label>房间号</label><input type="text" id="roomId" maxlength="12" spellcheck="false"><button class="mini" id="btnNewRoom">换房间</button></div>
+          <div class="ctl-row"><label>中继地址</label><input type="text" id="relayServer" spellcheck="false" placeholder="https://… 或留空用当前站点"></div>
+          <div class="ctl-row"><label>叠加层地址</label><input type="text" id="overlayLink" readonly></div>
+          <div class="btn-row">
+            <button class="mini primary" id="btnRelayConnect">连接</button>
+            <button class="mini" id="btnRelayDisconnect" disabled>断开</button>
+            <button class="mini" id="btnCopyOverlayLink">复制叠加层链接</button>
+            <button class="mini" id="btnOverlaySync">立即同步状态</button>
+            <button class="mini" id="btnOpenOverlay">本地快照打开</button>
+          </div>
+          <p class="link-state" id="relayStatus">未连接 · 房间数据不会离开本机</p>
+          <!-- CLOUD-UI-START -->
+          <div class="ctl-row"><label>云端快照</label>
+            <button class="mini" type="button" id="btnCloudSave">保存到云端</button>
+            <button class="mini" type="button" id="btnCloudLoad">从云端恢复</button>
+            <span class="hint" id="cloudStatus" style="word-break:break-all">云服务未检查</span>
+          </div>
+          <!-- CLOUD-UI-END -->
+          <p class="hint">OBS 浏览器源填上面的「叠加层地址」（已带 <code>?room=…&amp;panel=0</code>），宽 1920 / 高 1080、勾选透明背景。消息只在中继内存转发、不落盘；控制器另有随机控制密钥，别人知道房间号也只能观看。按 <b>H</b> 隐藏面板、<b>空格</b> 暂停、<b>←/→</b> ±5 秒。</p>
+        </div>
+        <div class="tool-box">
+          <div class="tool-title">② 本地视频烧录导出（可选格式）</div>
+          <p class="hint">先在上方「在线视频 · 时间同步」选择本地视频，再把同一份 SVG 记分条逐帧叠进画面。录制按视频原速实时进行，请保持此标签页在前台。</p>
+          <div class="ctl-row"><label>导出格式</label><select id="burnFormat"></select></div>
+          <div class="btn-row">
+            <button class="mini primary" id="btnBurn">开始烧录并导出</button>
+            <button class="mini danger" id="btnBurnStop" disabled>取消</button>
+            <button class="mini" id="btnCopyConvert" disabled>复制转换命令</button>
+          </div>
+          <div class="burn-bar"><span id="burnBar"></span></div>
+          <p class="hint" id="burnInfo">未开始。格式列表按当前浏览器实际支持自动生成。</p>
+          <p class="hint" id="formatInfo"></p>
+        </div>
+      </div>
+      <p class="hint" id="localStatus" style="margin-top:10px;color:var(--ok);min-height:18px">视频与比赛数据只在本机浏览器处理；仅当你点击「连接」时才会与线上中继交换房间消息。</p>
+      <p class="hint">MOV / AVI 等浏览器不原生支持的容器：先导出中间文件，再运行 <code>python convert_video.py "输入.mp4" --to mov</code> 本机转换（需安装 ffmpeg）；<code>--to</code> 支持 mp4 / mov / mkv / webm / avi。也可把任意导出文件转成别的容器。</p>
+    </div>
+  </section>
+
+  <footer class="about">
+    <div class="about-title">关于作者 · 问题反馈</div>
+    <div>项目作者：<b>狗王IB</b>　｜　B 站主页：<a href="https://space.bilibili.com/150585" target="_blank" rel="noopener noreferrer">https://space.bilibili.com/150585</a></div>
+    <div>遇到使用问题，可在 <a href="https://github.com/2BSB/baseball-scorebug-bas/issues" target="_blank" rel="noopener noreferrer">GitHub 仓库留言（Issues）</a>，也可以通过 <a href="https://space.bilibili.com/150585" target="_blank" rel="noopener noreferrer">B 站后台私信</a> 联系作者；反馈时建议附上浏览器版本、复现步骤与界面截图。</div>
+    <div class="about-note">本页为纯静态工具，以上仅为文字与超链接，不会自动向 GitHub 或 B 站发起请求；只有点击链接时才会打开新标签页。</div>
+  </footer>
 </div>
 
 <script src="jquery.min.js"></script>
 <script src="bas-engine.js"></script>
 <script src="scorebug-generator.js"></script>
 <script src="video-timeline.js"></script>
+<script src="relay-client.js"></script>
+<script src="video-burn.js"></script>
+<!-- CLOUD-ASSETS-START -->
+<script src="cloud-sdk.global.js"></script>
+<script src="cloud-config.js"></script>
+<script src="cloud-sync.js"></script>
+<!-- CLOUD-ASSETS-END -->
 <script>
 (function(){
   var G = window.ScorebugBAS;
@@ -650,6 +738,7 @@
       renderPreviewAt(t);
     }
     if (changedSecond || !fromVideo){ renderCueList(); renderCurrentState(); }
+    broadcastSync(t);
   }
   function seekVideo(t){
     t = Math.max(0, Number(t) || 0);
@@ -880,6 +969,7 @@
     if (els.engineToggle.checked) initEngine(currentCode);
     else { destroyEngine(); setStatus('已生成 BAS 脚本（' + defs + ' 个 def 对象，' + (events.length ? events.length + ' 个更新事件' : '静态常驻') + '，投放 ' + fmtTime(d.offset) + '）。'); }
     renderMarkers(); renderCueList(); renderCurrentState();
+    broadcastState();
   }
   function renderPreview(state, opts, events, offset){
     var t = Number(els.previewTime.value);
@@ -891,8 +981,312 @@
     els.timeLabel.textContent = fmtTime(t);
   }
 
+  /* ---------- 直播控制（线上房间） / 视频导出 ---------- */
+  var B = window.ScorebugBurner, R = window.ScorebugRelay;
+  var localStatus = document.getElementById('localStatus');
+  var burnInfo = document.getElementById('burnInfo');
+  var burnBar = document.getElementById('burnBar');
+  var btnBurn = document.getElementById('btnBurn');
+  var btnBurnStop = document.getElementById('btnBurnStop');
+  var roomInput = document.getElementById('roomId');
+  var serverInput = document.getElementById('relayServer');
+  var linkInput = document.getElementById('overlayLink');
+  var relayStatus = document.getElementById('relayStatus');
+  var formatSelect = document.getElementById('burnFormat');
+  var formatInfo = document.getElementById('formatInfo');
+  var btnConnect = document.getElementById('btnRelayConnect');
+  var btnDisconnect = document.getElementById('btnRelayDisconnect');
+  var btnCopyConvert = document.getElementById('btnCopyConvert');
+  function setLocalStatus(msg, err){
+    localStatus.textContent = msg;
+    localStatus.style.color = err ? 'var(--warn)' : 'var(--ok)';
+  }
+  function randomCode(n){
+    var a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s = '';
+    try {
+      var c = window.crypto || window.msCrypto, b = new Uint8Array(n);
+      c.getRandomValues(b);
+      for (var i = 0; i < n; i++) s += a[b[i] % a.length];
+    } catch(e){ for (var j = 0; j < n; j++) s += a[Math.floor(Math.random() * a.length)]; }
+    return s;
+  }
+  function absoluteTimeline(){
+    return {
+      initial: collectState(),
+      events: collectEvents(),
+      duration: Math.max(1, parseInt(els.videoDuration.value, 10) || 600)
+    };
+  }
+  function overlayPayload(){
+    var d = absoluteTimeline();
+    return { room: roomId, state: d.initial, events: d.events, options: collectOptions(),
+             duration: d.duration, t: currentSec };
+  }
+
+  /* ===== 线上房间中继：不连接时没有任何网络请求 ===== */
+  var bakedRelay = '__RELAY_DEFAULT__';
+  if (bakedRelay.charAt(0) === '_') bakedRelay = '';   // 未写入线上地址时视为空
+  var selfOrigin = (/^https?:$/.test(location.protocol) && !/github\.io$/i.test(location.hostname))
+    ? location.origin : '';
+  var urlParams = new URLSearchParams(location.search);
+  var urlRelay = urlParams.get('relay') ? R.normServer(urlParams.get('relay')) : '';
+  var urlRoom = R.normRoom(urlParams.get('room'));
+  serverInput.value = urlRelay || bakedRelay || selfOrigin;
+  var roomId = urlRoom || R.normRoom(roomInput.value) || randomCode(6);
+  roomInput.value = roomId;
+  var controlKey = randomCode(12);
+  var relay = null, bc = null, presenceText = '', stateTimer = null, syncTimer = null;
+
+  function currentRoom(){ return R.normRoom(roomInput.value); }
+  function serverBase(){ return R.normServer(serverInput.value); }
+  /* 托管平台的分享链接带 sharecode：必须透传给叠加层地址与中继接口，否则会被 403 拦截 */
+  function relayTicket(){
+    var t = R.pageTicket();
+    if (!t) { try { t = R.splitServer(serverInput.value).ticket; } catch(e){} }
+    return t || '';
+  }
+  function overlayUrl(){
+    var base = serverBase();
+    var page = base ? base + '/live-overlay.html' : 'live-overlay.html';
+    var q = '?room=' + encodeURIComponent(currentRoom()) + '&panel=0';
+    var t = relayTicket();
+    if (t) q += '&sharecode=' + encodeURIComponent(t);
+    if (base && base !== location.origin) q += '&relay=' + encodeURIComponent(base);
+    return page + q;
+  }
+  function updateOverlayLink(){ linkInput.value = overlayUrl(); }
+  function openBroadcast(){
+    if (bc) { try { bc.close(); } catch(e){} bc = null; }
+    try { if (window.BroadcastChannel) bc = new BroadcastChannel('scorebug-overlay-' + roomId); }
+    catch(e){ bc = null; }
+  }
+  function broadcast(msg){
+    /* 同源 BroadcastChannel 也按房间号分频道；线上消息不含 room，由服务端按连接绑定 */
+    var local = Object.assign({}, msg, { room: roomId });
+    if (bc) { try { bc.postMessage(local); } catch(e){} }
+    if (relay) relay.send(msg);
+  }
+  function broadcastState(){
+    if (stateTimer) return;
+    stateTimer = setTimeout(function(){ stateTimer = null; broadcast({ type:'state', payload: overlayPayload() }); }, 150);
+  }
+  function broadcastSync(t){
+    if (syncTimer) return;
+    syncTimer = setTimeout(function(){ syncTimer = null; broadcast({ type:'sync', t: t }); }, 200);
+  }
+  function setRelayStatus(s){
+    var t = s.transport === 'ws' ? 'WebSocket' :
+            (s.transport === 'poll' ? 'HTTP 长轮询' : (s.transport === 'reconnecting' ? '重连中' : '离线'));
+    relayStatus.className = 'link-state ' + (s.connected ? 'on' : 'off');
+    relayStatus.textContent = (s.connected ? '已连接' : '未连接') + ' · 房间 ' + s.room + ' · ' + t +
+      (presenceText ? ' · ' + presenceText : '') + (s.detail ? ' · ' + s.detail : '');
+    btnConnect.disabled = !!s.connected;
+    btnDisconnect.disabled = !s.connected && s.transport === 'offline';
+  }
+  function disconnectRelay(){
+    if (relay) { try { relay.close(); } catch(e){} relay = null; }
+    presenceText = '';
+    setRelayStatus({ connected:false, transport:'offline', room:currentRoom(), detail:'' });
+  }
+  btnConnect.addEventListener('click', function(){
+    var srv = serverBase(), rm = currentRoom();
+    if (rm.length < 4){ setLocalStatus('房间号至少 4 位，只能用字母和数字。', true); return; }
+    if (!srv){ setLocalStatus('请填写线上中继地址；从线上服务打开时会自动填当前站点。', true); return; }
+    disconnectRelay();
+    roomId = rm; openBroadcast(); updateOverlayLink();
+    relay = R.create({
+      server: srv, room: rm, role: 'controller', key: controlKey, ticket: relayTicket(),
+      onStatus: setRelayStatus,
+      onMessage: function(m){
+        if (m.type === 'presence'){
+          presenceText = '控制器 ' + m.controllers + ' / 观看 ' + m.viewers;
+          if (relay) setRelayStatus(relay.status());
+        } else if (m.type === 'error'){
+          setLocalStatus('中继返回：' + (m.message || m.error || '错误'), true);
+        }
+      }
+    });
+    relay.connect();
+    broadcastState(); broadcastSync(currentSec);
+    setLocalStatus('正在连接房间 ' + rm + '；成功后本页改动会实时推给同房间叠加层，其它房间收不到。');
+  });
+  btnDisconnect.addEventListener('click', function(){
+    disconnectRelay(); setLocalStatus('已断开线上房间，本页恢复完全离线。');
+  });
+  roomInput.addEventListener('input', function(){ updateOverlayLink(); });
+  serverInput.addEventListener('input', function(){ updateOverlayLink(); });
+  document.getElementById('btnNewRoom').addEventListener('click', function(){
+    roomId = randomCode(6); roomInput.value = roomId; controlKey = randomCode(12);
+    disconnectRelay(); openBroadcast(); updateOverlayLink();
+    setLocalStatus('已换新房间 ' + roomId + '，需要重新连接；旧房间的叠加层不会收到本页消息。');
+  });
+  function copyText(text, okMsg){
+    var done = function(){ setLocalStatus(okMsg); };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, function(){ fallbackCopy(text, done); });
+    } else fallbackCopy(text, done);
+  }
+  function fallbackCopy(text, done){
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); }
+    catch(e){ setLocalStatus('复制失败，请手动选中「叠加层地址」输入框复制。', true); }
+    ta.remove();
+  }
+  document.getElementById('btnCopyOverlayLink').addEventListener('click', function(){
+    updateOverlayLink();
+    copyText(linkInput.value, '已复制叠加层地址；粘贴到 OBS 浏览器源即可，房间里只有你能控制。');
+  });
+  document.getElementById('btnOpenOverlay').addEventListener('click', function(){
+    var payload;
+    try { payload = encodeURIComponent(JSON.stringify(overlayPayload())); }
+    catch(e){ setLocalStatus('叠加层数据序列化失败：' + e.message, true); return; }
+    var w = window.open('live-overlay.html?room=' + encodeURIComponent(roomId) +
+                        '&offline=1&panel=0#' + payload, 'scorebugOverlay');
+    broadcast({ type:'state', payload: overlayPayload() });
+    if (!w){ setLocalStatus('浏览器拦截了弹窗；请允许弹窗，或手动打开同目录 live-overlay.html。', true); return; }
+    setLocalStatus('已用 URL 快照打开本地叠加层（不连接线上中继）。');
+  });
+  document.getElementById('btnOverlaySync').addEventListener('click', function(){
+    broadcast({ type:'state', payload: overlayPayload() });
+    broadcast({ type:'sync', t: currentSec });
+    setLocalStatus('已推送当前比赛状态与视频秒数到房间 ' + roomId + '（未连接时仅同源页面可见）。');
+  });
+  /* CLOUD-LOGIC-START */
+  var C = window.ScorebugCloud;
+  var cloudStatus = document.getElementById('cloudStatus');
+  var cloudAuto = false, cloudSaving = false, cloudRev = 0, cloudSaveTimer = null;
+  function setCloud(msg, err){
+    cloudStatus.textContent = msg;
+    cloudStatus.style.color = err ? 'var(--warn)' : 'var(--ok)';
+  }
+  function cloudSnapshot(){
+    var p = overlayPayload();
+    return { state: p.state, events: p.events, options: p.options, duration: p.duration };
+  }
+  function saveCloud(auto){
+    if (!C || cloudSaving) return;
+    cloudSaving = true;
+    setCloud('正在写入云端快照…');
+    C.saveRoom(currentRoom(), cloudSnapshot(), controlKey).then(function (r){
+      cloudSaving = false;
+      if (!r.ok){ setCloud(r.message, true); if (!auto) setLocalStatus(r.message, true); return; }
+      cloudAuto = true; cloudRev = r.revision;
+      setCloud('云端已保存 · 第 ' + r.revision + ' 版 · ' + new Date().toLocaleTimeString());
+      if (!auto) setLocalStatus('房间 ' + currentRoom() + ' 的比赛状态与时间轴已保存到云端，其它设备打开同房间叠加层会自动恢复。');
+    });
+  }
+  function loadCloud(){
+    if (!C) return;
+    setCloud('正在读取云端快照…');
+    C.loadRoom(currentRoom()).then(function (r){
+      if (!r.ok){ setCloud(r.message, true); setLocalStatus(r.message, true); return; }
+      if (!r.data){
+        setCloud('云端暂无该房间的快照', true);
+        setLocalStatus('云端没有房间 ' + currentRoom() + ' 的快照，请先点「保存到云端」。', true);
+        return;
+      }
+      var d = r.data;
+      applyTimelineToForm({
+        initial: Object.assign({}, G.DEFAULT_STATE, d.state || {}),
+        events: Array.isArray(d.events) ? d.events : [],
+        video: { duration: d.duration || 600 }
+      }, false, true);
+      cloudAuto = true; cloudRev = Number(d.revision) || 0;
+      setCloud('已从云端恢复 · 第 ' + cloudRev + ' 版');
+      setLocalStatus('已从云端恢复房间 ' + currentRoom() + ' 的比赛状态与时间轴（' +
+        (Array.isArray(d.events) ? d.events.length : 0) + ' 个事件）。');
+      broadcastState();
+    });
+  }
+  document.getElementById('btnCloudSave').addEventListener('click', function(){ saveCloud(false); });
+  document.getElementById('btnCloudLoad').addEventListener('click', loadCloud);
+  btnConnect.addEventListener('click', function(){
+    cloudAuto = true;
+    setTimeout(function(){ saveCloud(true); }, 700);
+  });
+  document.getElementById('btnNewRoom').addEventListener('click', function(){
+    cloudAuto = false; cloudRev = 0; setCloud('已换房间，云端快照待重新保存');
+  });
+  /* 主动保存 / 连接后，状态变化会节流写入云端；未操作时页面不发任何云请求 */
+  var baseBroadcastState = broadcastState;
+  broadcastState = function(){
+    baseBroadcastState();
+    if (cloudAuto && !cloudSaveTimer){
+      cloudSaveTimer = setTimeout(function(){ cloudSaveTimer = null; saveCloud(true); }, 2500);
+    }
+  };
+  var st = C ? C.status() : { ready:false, message:'云服务模块未加载' };
+  setCloud(st.ready ? '云服务已就绪 · 可保存 / 恢复房间快照' : st.message, !st.ready);
+  /* CLOUD-LOGIC-END */
+  openBroadcast(); updateOverlayLink();
+  setRelayStatus({ connected:false, transport:'offline', room:roomId, detail:'' });
+
+  /* ===== 导出格式：列表由浏览器实际支持能力生成 ===== */
+  var formats = B.listFormats();
+  formats.forEach(function(f){
+    var o = document.createElement('option');
+    o.value = f.id; o.textContent = f.label + ' — ' + f.note;
+    formatSelect.appendChild(o);
+  });
+  formatSelect.value = B.defaultFormatId();
+  function selectedFormat(){ return formats.filter(function(f){ return f.id === formatSelect.value; })[0] || formats[0]; }
+  function showFormatInfo(){
+    var f = selectedFormat();
+    formatInfo.textContent = '当前：' + f.label + ' · ' + f.note;
+  }
+  formatSelect.addEventListener('change', showFormatInfo);
+  showFormatInfo();
+  var lastConvertCmd = '';
+  btnCopyConvert.addEventListener('click', function(){ copyText(lastConvertCmd, '已复制本机转换命令：' + lastConvertCmd); });
+  var burnCtrl = null;
+  btnBurn.addEventListener('click', function(){
+    if (burnCtrl && burnCtrl.isRunning()){ setLocalStatus('已有录制在进行中。', true); return; }
+    var f = els.localVideoFile.files && els.localVideoFile.files[0];
+    if (!f){ setLocalStatus('请先在上方「在线视频 · 时间同步」里选择本地视频文件。', true); return; }
+    var probe = B.isSupported();
+    if (!probe.ok && !probe.okWithoutAudio){ setLocalStatus(probe.reason, true); return; }
+    var d = absoluteTimeline();
+    btnBurn.disabled = true; btnBurnStop.disabled = false; burnBar.style.width = '0%';
+    burnCtrl = B.burn({
+      file: f, initial: d.initial, events: d.events, options: collectOptions(),
+      duration: d.duration, format: formatSelect.value,
+      onStatus: function(m){ burnInfo.textContent = m; setLocalStatus(m); },
+      onProgress: function(p, t){
+        burnBar.style.width = (p * 100).toFixed(1) + '%';
+        burnInfo.textContent = '录制进度 ' + (p * 100).toFixed(1) + '% · ' + fmtTime(t) + ' / ' + fmtTime(d.duration) +
+          ' · ' + selectedFormat().label;
+      },
+      onDone: function(blob, meta){
+        var name = '棒球计分-叠加视频.' + meta.ext;
+        B.downloadBlob(name, blob);
+        lastConvertCmd = B.convertCommand(name, meta.targetExt || (meta.ext === 'webm' ? 'mp4' : 'mov'));
+        btnCopyConvert.disabled = false;
+        btnBurn.disabled = false; btnBurnStop.disabled = true; burnCtrl = null;
+        burnBar.style.width = '100%';
+        burnInfo.textContent = '导出完成：' + name + '（' + (blob.size / 1048576).toFixed(1) + ' MB，' +
+          meta.width + '×' + meta.height + (meta.audio ? '，含原声' : '，静音') + '）。' +
+          (meta.needsConversion ? '这是中间文件，请用转换命令生成 .' + meta.targetExt + '。' : '') +
+          (meta.fallback ? '（当前容器不受支持，已自动回退）' : '');
+        formatInfo.textContent = '本机转换命令：' + lastConvertCmd;
+        setLocalStatus(burnInfo.textContent + ' 文件已下载到本机，未上传。');
+      },
+      onError: function(m){
+        btnBurn.disabled = false; btnBurnStop.disabled = true; burnCtrl = null;
+        burnInfo.textContent = '烧录失败：' + m;
+        setLocalStatus('烧录失败：' + m, true);
+      }
+    });
+  });
+  btnBurnStop.addEventListener('click', function(){
+    if (burnCtrl) burnCtrl.stop();
+    btnBurn.disabled = false; btnBurnStop.disabled = true; burnCtrl = null;
+  });
+
   /* ---------- 事件绑定 ---------- */
   document.querySelectorAll('input,select').forEach(function(el){
+    if (el.closest('.local-tools')) return; // 房间/中继/格式控件由独立逻辑处理，不触发生成
     if (el.closest('#eventRows') || el.id === 'previewTime' || el.id === 'engineToggle' ||
         el.id === 'sizeQuick' || el.id === 'fontQuick') return;
     if (el.id === 'showVideo' || el.id === 'videoBrightness') return; // 仅影响预览层，不重新生成 BAS

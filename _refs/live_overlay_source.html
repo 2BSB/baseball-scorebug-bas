@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>棒球实时计分 · 直播叠加层（线上房间）</title>
+<style>
+  html,body{margin:0;padding:0;width:100%;height:100%;background:transparent;overflow:hidden}
+  body{font:13px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:#e8eef8}
+  #overlay{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+  #panel{position:fixed;left:14px;top:14px;width:300px;z-index:5;background:rgba(9,14,24,.88);border:1px solid rgba(130,160,210,.38);border-radius:10px;padding:10px 12px 11px;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+  body.clean #panel{display:none}
+  #panel h1{font-size:13px;margin:0 0 7px;color:#8ab4ff;font-weight:700;letter-spacing:.3px}
+  #srcInfo,#roomInfo,#linkInfo,#cloudInfo{font-size:11.5px;color:#a9bbd6;margin-bottom:5px;line-height:1.5}
+  #cloudInfo.on{color:#72e0a8}#cloudInfo.off{color:#f0b86a}
+  #linkInfo.on{color:#72e0a8}#linkInfo.off{color:#f0b86a}
+  #clock{font:700 26px/1.2 Consolas,Menlo,monospace;color:#fff;letter-spacing:1px;margin:2px 0 8px}
+  .row{display:flex;gap:6px;align-items:center;margin-bottom:7px}
+  button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid #4b5b76;background:#1b273c;color:#e8eef8;padding:4px 9px;font-size:12px}
+  button:hover{border-color:#8ab4ff;color:#fff}
+  button.primary{background:#1a56c4;border-color:#1a56c4;color:#fff}
+  input[type=text]{font:12px Consolas,Menlo,monospace;color:#fff;background:#111b2c;border:1px solid #4b5b76;border-radius:6px;padding:4px 7px;width:96px}
+  label.chk{display:flex;gap:6px;align-items:center;font-size:11.5px;color:#c6d5ea;margin:2px 0 7px;cursor:pointer}
+  label.file{display:block;font-size:11.5px;color:#c6d5ea;margin:2px 0 7px;cursor:pointer}
+  label.file input{display:block;width:100%;font-size:11px;margin-top:3px;color:#a9bbd6}
+  .tip{font-size:11px;color:#8fa4c2;line-height:1.65;margin:6px 0 0;border-top:1px solid rgba(130,160,210,.25);padding-top:7px}
+  b{color:#8ab4ff}
+</style>
+</head>
+<body>
+<svg id="overlay" viewBox="0 0 1000 562.5" preserveAspectRatio="xMidYMid meet"></svg>
+<div id="panel">
+  <h1>棒球计分 · 直播叠加层（线上）</h1>
+  <div id="srcInfo">数据源：等待线上房间推送 / URL 快照 / 导入时间轴</div>
+  <div id="roomInfo">房间：未加入</div>
+  <div id="linkInfo">未连接中继（离线）</div>
+  <!-- CLOUD-UI-START -->
+  <div id="cloudInfo">云端：未检查</div>
+  <!-- CLOUD-UI-END -->
+  <div id="clock">00:00</div>
+  <div class="row">
+    <button id="btnPlay" class="primary">暂停</button>
+    <button id="btnHide">隐藏面板 (H)</button>
+  </div>
+  <div class="row">
+    <input type="text" id="tInput" value="00:00">
+    <button id="btnSeek">跳转</button>
+    <span style="font-size:11px;color:#8fa4c2">秒 / 01:23</span>
+  </div>
+  <div class="row">
+    <input type="text" id="roomInput" placeholder="房间号" maxlength="12">
+    <button id="btnJoin">加入房间</button>
+  </div>
+  <label class="chk"><input type="checkbox" id="follow" checked> 跟随控制器时间（实时同步）</label>
+  <label class="file">导入时间轴 JSON（离线独立运行）
+    <input type="file" id="jsonFile" accept=".json,application/json">
+  </label>
+  <p class="tip"><b>OBS 浏览器源</b>：粘贴主页面「复制叠加层链接」得到的地址（含 <b>room</b>），宽 1920 / 高 1080、勾选「透明背景」。不同房间互不干扰，可多人同时直播。按 <b>H</b> 隐藏面板，<b>空格</b> 播放/暂停，<b>←/→</b> 快退/快进 5 秒。</p>
+</div>
+
+<script src="scorebug-generator.js"></script>
+<script src="relay-client.js"></script>
+<!-- CLOUD-ASSETS-START -->
+<script src="cloud-sdk.global.js"></script>
+<script src="cloud-config.js"></script>
+<script src="cloud-sync.js"></script>
+<!-- CLOUD-ASSETS-END -->
+<script>
+(function(){
+  var G = window.ScorebugBAS, R = window.ScorebugRelay;
+  var svg = document.getElementById('overlay');
+  var srcInfo = document.getElementById('srcInfo');
+  var roomInfo = document.getElementById('roomInfo');
+  var linkInfo = document.getElementById('linkInfo');
+  var clock = document.getElementById('clock');
+  var tInput = document.getElementById('tInput');
+  var roomInput = document.getElementById('roomInput');
+  var btnPlay = document.getElementById('btnPlay');
+  var follow = document.getElementById('follow');
+  var q = new URLSearchParams(location.search);
+  var room = R.normRoom(q.get('room'));
+  var relayParsed = q.get('relay') ? R.splitServer(q.get('relay')) : { base: '', ticket: '' };
+  var relayBase = relayParsed.base;
+  var relayTicket = relayParsed.ticket || R.pageTicket();
+  var offline = q.get('offline') === '1';
+  var sameOrigin = (/^https?:$/.test(location.protocol) && !/github\.io$/i.test(location.hostname))
+    ? location.origin : '';
+  var cfg = {
+    state: Object.assign({}, G.DEFAULT_STATE),
+    events: [],
+    options: Object.assign({}, G.DEFAULT_OPTIONS),
+    duration: 600,
+    t: 0,
+    running: true,
+    hasData: false
+  };
+  var baseT = 0, baseMs = performance.now(), lastSyncMs = -1e9, lastSig = '', fit = null;
+  var viewer = null, bc = null, presenceText = '';
+  roomInput.value = room;
+
+  function fmt(t){
+    t = Math.max(0, Math.floor(t));
+    var h = Math.floor(t / 3600), m = Math.floor(t / 60) % 60, s = t % 60;
+    var p = function(v){ return ('0' + v).slice(-2); };
+    return (h ? p(h) + ':' : '') + p(m) + ':' + p(s);
+  }
+  function parseTime(v){
+    v = String(v).trim();
+    if (!v) return null;
+    var parts = v.split(':');
+    if (parts.length > 3) return null;
+    var sec = 0;
+    for (var i = 0; i < parts.length; i++){
+      var n = Number(parts[i]);
+      if (!isFinite(n) || n < 0) return null;
+      sec = sec * 60 + n;
+    }
+    return sec;
+  }
+  function currentT(){
+    if (follow.checked && performance.now() - lastSyncMs < 1500) return cfg.t;
+    return cfg.running ? baseT + (performance.now() - baseMs) / 1000 : baseT;
+  }
+  function seek(t){
+    t = Math.max(0, t);
+    baseT = t; baseMs = performance.now(); cfg.t = t;
+    lastSig = '';
+    render();
+  }
+  function setLink(s){
+    var t = s.transport === 'ws' ? 'WebSocket' :
+            (s.transport === 'poll' ? 'HTTP 长轮询' : (s.transport === 'reconnecting' ? '重连中' : '离线'));
+    linkInfo.className = s.connected ? 'on' : 'off';
+    linkInfo.textContent = (s.connected ? '已连接' : '未连接') + ' · 房间 ' + s.room + ' · ' + t +
+      (presenceText ? ' · ' + presenceText : '') + (s.detail ? ' · ' + s.detail : '');
+    roomInfo.textContent = '房间：' + (s.room || '未加入') + '（只读观看）';
+  }
+  function applyPayload(p, label){
+    if (!p) return;
+    /* 房间不符的数据一律丢弃：URL 快照、同源广播、线上推送都不允许串台 */
+    if (p.room && R.normRoom(p.room) !== room) return;
+    if (p.state) cfg.state = Object.assign({}, G.DEFAULT_STATE, p.state);
+    if (Object.prototype.toString.call(p.events) === '[object Array]') cfg.events = p.events;
+    if (p.options) cfg.options = Object.assign({}, G.DEFAULT_OPTIONS, p.options);
+    if (p.duration) cfg.duration = Math.max(1, Number(p.duration) || 600);
+    if (typeof p.t === 'number' && isFinite(p.t)) seek(p.t);
+    cfg.hasData = true;
+    fit = G.worstFitState(cfg.state, cfg.events);
+    lastSig = '';
+    srcInfo.textContent = '数据源：' + label + ' · ' + cfg.events.length + ' 个事件 · 时长 ' + fmt(cfg.duration);
+    render();
+  }
+  function render(){
+    var t = Math.min(currentT(), cfg.duration);
+    var s = G.stateAtTime(cfg.state, cfg.events, t);
+    var sig = JSON.stringify(s);
+    if (sig !== lastSig){
+      lastSig = sig;
+      if (!fit) fit = G.worstFitState(cfg.state, cfg.events);
+      svg.innerHTML = G.renderSVG(s, cfg.options, { fieldBg: false, fitState: fit });
+    }
+    clock.textContent = fmt(t);
+    if (document.activeElement !== tInput) tInput.value = fmt(t);
+    requestAnimationFrame(render);
+  }
+  function openBroadcast(){
+    if (bc) { try { bc.close(); } catch(e){} bc = null; }
+    try { if (window.BroadcastChannel) bc = new BroadcastChannel('scorebug-overlay-' + (room || 'local')); }
+    catch(e){ bc = null; }
+    if (bc) bc.onmessage = function (ev){
+      var m = ev.data || {};
+      if (m.room && R.normRoom(m.room) !== room) return;
+      if (m.type === 'state' && m.payload) applyPayload(m.payload, '同源控制器');
+      else if (m.type === 'sync' && typeof m.t === 'number' && follow.checked){
+        cfg.t = m.t; baseT = m.t; baseMs = performance.now(); lastSyncMs = performance.now(); lastSig = '';
+      }
+    };
+  }
+  function connectRoom(id){
+    id = R.normRoom(id);
+    if (viewer) { try { viewer.close(); } catch(e){} viewer = null; }
+    room = id;
+    roomInput.value = room;
+    presenceText = '';
+    openBroadcast();
+    var server = relayBase || sameOrigin;
+    if (!room || offline || !server){
+      setLink({ connected:false, transport:'offline', room:room, detail: offline ? '本地快照模式' : '未配置中继地址' });
+      return;
+    }
+    viewer = R.create({
+      server: server, room: room, role: 'viewer', key: '', ticket: relayTicket,
+      onStatus: setLink,
+      onMessage: function(m){
+        if (m.room && R.normRoom(m.room) !== room) return;
+        if (m.type === 'state' && m.payload) applyPayload(m.payload, '线上房间 ' + room);
+        else if (m.type === 'sync' && typeof m.t === 'number' && follow.checked){
+          cfg.t = m.t; baseT = m.t; baseMs = performance.now(); lastSyncMs = performance.now(); lastSig = '';
+        } else if (m.type === 'presence'){
+          presenceText = '控制器 ' + m.controllers + ' / 观看 ' + m.viewers;
+          if (viewer) setLink(viewer.status());
+        }
+      }
+    });
+    viewer.connect();
+  }
+
+  /* URL hash 快照（hash 不发送到服务器）；带房间号时校验一致性 */
+  try {
+    var h = location.hash.slice(1);
+    if (h) applyPayload(JSON.parse(decodeURIComponent(h)), '控制器 URL 快照');
+  } catch (e) { srcInfo.textContent = 'URL 数据解析失败：' + e.message; }
+  if (q.get('panel') === '0') document.body.classList.add('clean');
+  if (q.get('clock') === '0'){ cfg.running = false; btnPlay.textContent = '播放'; }
+  var t0 = parseTime(q.get('t'));
+  if (t0 !== null) seek(t0);
+  connectRoom(room);
+
+  /* CLOUD-LOGIC-START */
+  var C = window.ScorebugCloud;
+  var cloudInfo = document.getElementById('cloudInfo');
+  var cloudRev = 0;
+  function cloudLabel(msg, good){
+    cloudInfo.textContent = '云端：' + msg;
+    cloudInfo.className = good ? 'on' : 'off';
+  }
+  function loadCloudSnapshot(){
+    if (!C || !room) return;
+    C.loadRoom(room).then(function (r){
+      if (!r.ok){ cloudLabel(r.message, false); return; }
+      if (!r.data){ cloudLabel('该房间暂无快照', false); return; }
+      var d = r.data, rev = Number(d.revision) || 0;
+      cloudLabel('第 ' + rev + ' 版快照', true);
+      /* 房间号由 URL / 面板绑定，云端按 room_id 精确查询，别房间的数据不会进这里 */
+      if (rev > cloudRev || !cfg.hasData){
+        cloudRev = rev;
+        applyPayload({
+          room: room,
+          state: d.state || {},
+          events: Array.isArray(d.events) ? d.events : [],
+          options: d.options || {},
+          duration: d.duration || 600
+        }, '云端快照 ' + room);
+      }
+    });
+  }
+  if (C) loadCloudSnapshot();
+  else cloudLabel('离线静态版未开启云服务', false);
+  /* 实时中继之外的兜底：控制器不在时也能拿到最后一版云端状态 */
+  setInterval(function(){
+    if (document.visibilityState !== 'hidden') loadCloudSnapshot();
+  }, 20000);
+  /* CLOUD-LOGIC-END */
+
+  function togglePlay(){
+    cfg.running = !cfg.running;
+    baseT = currentT(); baseMs = performance.now();
+    btnPlay.textContent = cfg.running ? '暂停' : '播放';
+  }
+  btnPlay.addEventListener('click', togglePlay);
+  document.getElementById('btnHide').addEventListener('click', function(){ document.body.classList.add('clean'); });
+  document.getElementById('btnJoin').addEventListener('click', function(){
+    var id = R.normRoom(roomInput.value);
+    if (id.length < 4){ linkInfo.textContent = '房间号至少 4 位（字母 / 数字）。'; return; }
+    connectRoom(id);
+  });
+  document.getElementById('btnSeek').addEventListener('click', function(){
+    var t = parseTime(tInput.value);
+    if (t === null){ srcInfo.textContent = '时间码无法识别，请用 83 / 01:23 / 1:02:03。'; return; }
+    seek(t);
+  });
+  tInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); document.getElementById('btnSeek').click(); }
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.target === tInput || e.target === roomInput) return;
+    if (e.code === 'Space'){ e.preventDefault(); togglePlay(); }
+    else if (e.key === 'h' || e.key === 'H'){ document.body.classList.toggle('clean'); }
+    else if (e.key === 'ArrowLeft'){ seek(currentT() - 5); }
+    else if (e.key === 'ArrowRight'){ seek(currentT() + 5); }
+  });
+  document.getElementById('jsonFile').addEventListener('change', function(){
+    var f = this.files && this.files[0];
+    if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function(){
+      try {
+        var r = JSON.parse(String(rd.result));
+        var events = (Object.prototype.toString.call(r.events) === '[object Array]' ? r.events : [])
+          .map(function(e){ return { t: Number(e.t) || 0, field: e.field, value: e.value }; });
+        applyPayload({ room: room, state: r.initial || {}, events: events,
+                       duration: (r.video && r.video.duration) || cfg.duration, t: 0 }, f.name);
+      } catch (e){ srcInfo.textContent = '导入失败：' + e.message; }
+    };
+    rd.readAsText(f, 'utf-8');
+  });
+
+  fit = G.worstFitState(cfg.state, cfg.events);
+  render();
+})();
+</script>
+</body>
+</html>

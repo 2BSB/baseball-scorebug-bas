@@ -4,6 +4,13 @@
 
 脚本写法遵循 [BAS 官方指南](https://bilibili.github.io/bas/#/guide)：`def text` / `def path` / `set` / `then set` / `duration`。
 
+**项目作者：狗王IB** ｜ [B 站主页](https://space.bilibili.com/150585) ｜ [GitHub 仓库](https://github.com/2BSB/baseball-scorebug-bas)
+遇到使用问题，可在 [GitHub Issues](https://github.com/2BSB/baseball-scorebug-bas/issues) 留言，或通过 B 站后台私信作者。网页顶部与底部也内置了同样的作者信息与反馈入口。
+
+## 更新说明
+
+完整版本记录见 **[CHANGELOG.md](CHANGELOG.md)**。最新一批（**v2.6 · 2026-11-09**）：网页新增作者信息与问题反馈入口、补齐历史更新记录，并把此前仅保存在本地的云服务、线上房间中继、直播叠加层、视频烧录导出、格式转换与验证脚本**全量同步到 GitHub**；GitHub Pages 干净静态版依旧剔除全部云代码。
+
 ## 快速开始
 
 1. 下载或 clone 本仓库，双击 **`棒球计分弹幕生成器.html`** 打开。直接用 `file://` 即可，不需要服务器，也不需要联网。
@@ -22,16 +29,22 @@
 - **渲染模式**：默认 SVG 预览；勾选「用真实 BAS 引擎渲染」会用内联的 BAS 引擎实际解析脚本，便于核对动画链。
 - **URL 参数**：`?engine=1` 启用真实 BAS 引擎（本地自检用）；`?noplayer=1` 仅为兼容保留。页面默认就不加载任何在线播放器，也没有载入演示数据的后门，公网访问者打开即是空表单。
 
+## 界面预览
+
+![整体界面](界面截图/01-整体界面-全页长图.png)
+
+更多截图：[打开页面首屏](界面截图/02-打开页面首屏.png) · [效果预览与记分条](界面截图/03-效果预览与记分条.png) · [记分条特写](界面截图/04-记分条特写.png) · [直播控制与视频导出](界面截图/06-直播控制与视频导出.png) · [BAS 代码输出](界面截图/09-BAS代码输出.png) · [线上叠加层](界面截图/10-线上叠加层-控制面板.png) · [作者信息与页脚](界面截图/12-作者信息与页脚.png)。
+
 ## 文件说明
 
 | 文件 | 用途 |
 | --- | --- |
 | `棒球计分弹幕生成器.html` | **主交付物**：内联了 jQuery、BAS 引擎、生成器与时间轴适配层的单文件离线工具 |
-| `棒球实时计分.bas` | 默认静态脚本，可直接粘贴投放 |
-| `棒球实时计分-时间轴示例.bas` | 9 个事件的小型演示脚本 |
-| `BV19f4H6xE9B-完整计分.bas` | 完整验证脚本：170 个事件、15 条动画链、`duration = 30m` |
-| `视频时间轴示例.json` | 手工时间轴示例数据，可在界面里导入 |
-| `BV19f4H6xE9B-时间轴对照.csv` | 事件时间码 / 字段 / 新值 / 说明对照表 |
+| `CHANGELOG.md` | 按版本批次记录的更新说明 |
+| `界面截图/` | 界面、记分条、叠加层与导出功能的截图 |
+| `video-burn.js` / `convert_video.py` | 视频烧录导出与 MOV / AVI 本机格式转换 |
+| `serve_overlay.py` | 本机 127.0.0.1:8765 同源叠加层预览服务 |
+| `_refs/*.js` | 打包、静态版构建、线上版同步与 CDP 端到端验证脚本 |
 | `scorebug-generator.js` | 核心：BAS 生成、SVG 预览、位置计算、状态按时间推进 |
 | `video-timeline.js` | B 站链接解析、播放器地址拼接、时间码换算、时间轴对齐 |
 | `_refs/generator_source.html` | 未打包的 HTML 模板（修改界面请改这里） |
@@ -41,29 +54,82 @@
 | `reference-scoreboard.png` | 界面里显示的原版记分板参考图 |
 | `public-site/index.html` + `public-site/reference-scoreboard.png` | **公网发布目录**：只有干净的静态网页与参考图，可直接上传到任意静态托管 |
 | `docs/index.html` + `docs/reference-scoreboard.png` | 与 `public-site` 内容相同，供 GitHub Pages 使用（Pages 要求目录名为 `docs`） |
+| `live-overlay.html` / `bundle_overlay.js` | 独立透明直播叠加层（单文件）及其打包脚本 |
+| `relay-client.js` / `online-app/` | 线上房间中继客户端与零依赖单端口服务（静态页 + WebSocket + 长轮询） |
+| `cloud-sdk.global.js` | WorkBuddy 云 SDK 的 IIFE 构建（内联，保持零外链脚本） |
+| `cloud-config.js` | `workbuddy_cloud_service` 返回的 `publicConfig`（仅公开字段） |
+| `cloud-sync.js` | 云端房间快照模块 `window.ScorebugCloud`（保存 / 恢复 / 状态与错误分类） |
 
-> 示例视频 [BV19f4H6xE9B](https://www.bilibili.com/video/BV19f4H6xE9B/) 的画面中没有记分板、也没有字幕识别，仓库内的时间轴是**手工演示数据**，不是自动识别结果；本项目已移除模型识别接口。示例视频元数据与演示时间轴只保留在 `build-video-bas.js`（本地构建脚本）和交付文件里，**不会打包进网页**。
+> 示例视频 [BV19f4H6xE9B](https://www.bilibili.com/video/BV19f4H6xE9B/) 的画面中没有记分板、也没有字幕识别，早期附带的时间轴是**手工演示数据**，不是自动识别结果；本项目已移除模型识别接口。为让仓库保持干净，示例 `.bas` / `.json` / `.csv` 交付文件已从发布内容中移除，需要时可运行 `node build.js` / `node build-video-bas.js` 在本机重建；示例数据**不会打包进网页**。
 
 ## 公网发布与隐私
 
-`public-site/` 是可直接上传的静态站点目录，里面只有 `index.html` 和 `reference-scoreboard.png`，没有任何服务端代码、构建产物或示例数据。
+- **静态站点**：`public-site/`（同步 `docs/`）含 `index.html`、`live-overlay.html`、`reference-scoreboard.png`，已上线 <https://2bsb.github.io/baseball-scorebug-bas/>。v2.6 起仓库 `main` 已与本地全量同步，Pages 会自动按 `docs/` 重建；仓库里同时提供完整的线上服务源码，但 `docs/` 目录本身始终只是干净静态版。
+- **线上实时服务**：`online-app/` 是独立的单端口 Node 服务（零依赖），分享链接：`https://scorebug-live-relay.app.workbuddy.host/?sharecode=73BAOORXNH`；它同时提供控制器页面、叠加层页面与房间中继。
+- **依赖**：线上应用版 HTML 含 10 段内联脚本（jQuery 3.2.1、BAS 引擎、`scorebug-generator.js`、`video-timeline.js`、`relay-client.js`、`video-burn.js`、`cloud-sdk.global.js`、`cloud-config.js`、`cloud-sync.js`、页面主逻辑），**0 个外链 `<script>` / `<link>`**；唯一外部资源是同目录 `reference-scoreboard.png`。GitHub Pages 干净版（`public-site/` / `docs/`）由构建脚本**剔除全部云服务代码块**，回到 7 段脚本、零云请求。
+- **页面初始状态**：B 站链接、播放器、视频 URL 全部为空；视频时长默认 600 秒；不预置任何示例比赛数据。B 站 iframe 只在点击「解析并嵌入播放器」后由使用者浏览器直接请求。
+- **默认完全离线**：没有 Cookie、`localStorage`、`sessionStorage`、IndexedDB、统计脚本；队名、比分、时间轴、视频与生成的 BAS 只在当前标签页内存里。**唯一例外**是 `relay-client.js`：只有点击「连接」后才会与线上中继建立 WebSocket（或 HTTP 长轮询兜底）；线上应用版另有 `cloud-sync.js`，只在主动保存 / 恢复 / 连接，或叠加层加载房间时访问云数据库。构建脚本会强制检查，页面主体不得出现任何网络调用。
+- **中继不落盘**：房间与消息只在服务进程内存，空闲 30 分钟自动清理；不写文件、不写数据库、不记录消息内容。控制器带随机控制密钥，观众只读。任何托管平台都会有标准访问日志（IP / 时间 / URL），这是 HTTP 服务无法关闭的；但比赛数据不会写进 URL 或日志。
+- **云端快照例外**：只有主动使用「保存到云端」才会把比赛状态持久化到应用专属云数据库（见下节）；不使用则云端不留任何比赛数据。Pages 静态版连这部分代码都不含，隐私承诺不变。
 
-**已上线**：<https://2bsb.github.io/baseball-scorebug-bas/>（GitHub Pages，从 `main` 分支 `/docs` 目录发布，站点只暴露这两个干净静态文件）。
+## 云服务接入（WorkBuddy Cloud Service）
 
-- **依赖**：最终 HTML 含 5 段内联脚本（jQuery 3.2.1、BAS 引擎、`scorebug-generator.js`、`video-timeline.js`、页面主逻辑），**0 个外链 `<script>` / `<link>`**；唯一外部资源是同目录的 `reference-scoreboard.png`。
-- **页面初始状态**：B 站链接、解析结果、播放器、视频 URL 全部为空；视频时长默认 600 秒；不自动请求 `player.bilibili.com`。B 站 iframe 只在使用者主动点击「解析并嵌入播放器」后，由其浏览器直接向 B 站发起。
-- **数据只在访问者设备**：没有后端接口、Cookie、`localStorage`、`sessionStorage`、IndexedDB、`fetch`、XHR 上报或统计脚本。队名、比分、时间轴、视频链接与生成的 BAS 全部只在当前标签页的内存里处理，刷新/关闭即清空；需要留存请用「导出时间轴 JSON」「下载 .bas」，文件保存在本人设备。
-- **主动外跳**：「官方试验室」「在原站打开」由使用者点击后才会把当前 BAS 或视频地址带到对应站点。
-- **关于托管日志**：任何静态托管平台都会记录标准访问日志（IP、时间、URL），这是 HTTP 服务无法关闭的；但本页不会把表单内容写进请求或日志，服务器拿不到访问者生成的任何数据。
+已为应用「棒球计分直播中控」开通云服务（`billingStatus=normal` / `provisionStatus=assigned`），接入 **Database** 模块，把原来只在内存里存活 30 分钟的房间状态升级为可跨设备恢复的云端快照。
+
+- **数据表** `public.scorebug_rooms`：主键 `room_id`，含 `owner_id`、`control_key_hash`、`state` / `events` / `options`（JSONB）、`duration`、`revision`、`updated_at` / `created_at`。已启用 RLS，对 `anon` / `authenticated` 授予 SELECT / INSERT / UPDATE 策略（公开读、受控写），不提供 DELETE 策略。
+- **模块** `cloud-sync.js`（`window.ScorebugCloud`）：`status()` / `saveRoom()` / `loadRoom()`，全部走 SDK 的 `cloud.database`。**唯一客户端初始化点**使用 `cloud-config.js` 中来自 `workbuddy_cloud_service(activate)` 返回 `publicConfig` 的 `endpoint` / `publishableKey` / `oauthRelayBaseUrl`，页面不含任何服务端密钥。
+- **控制器**：底部「① 线上直播叠加层」新增「保存到云端 / 从云端恢复」。连接房间后或手动保存过之后，比赛状态变化会节流 2.5 秒写入云端；写入前校验控制密钥哈希，已被其它控制器占用的房间拒绝覆写。
+- **叠加层**：加入房间时自动读取同房间云端快照，面板显示「第 N 版快照」，之后每 20 秒检查一次 `revision`，作为 WebSocket / 长轮询之外的兜底；控制器不在线也能恢复最后一版比分。
+- **失败路径**：未配置 / SDK 缺失 / 网络异常 / 权限拒绝 / 配额不足 / 表缺失 / 密钥不匹配 / 房间号非法，都返回明确中文提示，本地生成与视频导出不受影响。
+- **隐私边界**：云端快照是**用户主动保存**才产生的、按房间号隔离的协作数据，不是账号私有数据；云数据库会保留保存过的快照，视频文件与 BAS 仍只在本机处理。GitHub Pages 静态版不含任何云代码。
+- **验证**：`_refs/verify_v25_cloud.js` 在正式域名（同源，满足云服务精确 Origin 校验）装载新构建页面，实测写入读回、跨页面恢复、另一房间不串台、错误密钥被拒、干净版无云代码；`_refs/verify_v25_online.js` 在**重新发布后的公网页面**直接复测保存、云端恢复与房间隔离。两者全部通过，线上 `/api/health` 返回 `cloud: workbuddy-cloud-service`。
+
+## 直播叠加层（线上房间 · 跨设备实时控制）
+
+**分享链接**：`https://scorebug-live-relay.app.workbuddy.host/?sharecode=73BAOORXNH`（打开即为控制器页面）。
+
+1. 打开分享链接，页面底部「① 线上直播叠加层」会自动填好中继地址与一个随机 6 位**房间号**，点「连接」。
+2. 点「复制叠加层链接」，把得到的地址粘到 OBS / 直播软件的「浏览器源」（宽 1920 / 高 1080、勾选透明背景）。控制器与 OBS 可以在不同设备、不同网络。
+3. 之后在控制器改比分、打点、拖时间轴，同房间叠加层实时更新；点「立即同步状态」可强制推送一次。不同房间完全隔离，多人同时使用不会串台。
+4. 离线时仍可用：「本地快照打开」用 URL hash 传数据；`live-overlay.html?room=XXX&offline=1` 或导入「导出时间轴 JSON」独立运行；`python serve_overlay.py` 依旧只监听 127.0.0.1:8765、不写访问日志，供本机同源 `BroadcastChannel` 同步。
+5. 叠加层面板按 `H` 隐藏、`空格` 播放/暂停、`←/→` ±5 秒；`?clock=0` 关闭自动走时。创建房间时另生成 12 位**控制密钥**，别人只知道房间号只能观看，不能改你的比分。
+6. **不要删掉链接里的 `sharecode`**：托管平台用它放行请求，页面会自动把它透传到叠加层地址、WebSocket 与轮询接口；删除后叠加层会返回 403。分享链接本身可复制给同伴，但拿到同一房间号的人只能观看。
+
+**隔离机制**：连接时房间号由服务端绑定，客户端消息体里的 `room` 字段一律忽略；服务端只向同房间广播，客户端二次校验 `m.room` 并丢弃自己的回声；同源 `BroadcastChannel` 频道名也带房间号。模块 `relay-client.js`（`window.ScorebugRelay`）、`online-app/server.js`。
+
+## 视频导出（可选格式）
+
+- 先在「在线视频 · 时间同步」选择**本地视频文件**，再在「② 本地视频烧录导出」选择格式，点「开始烧录并导出」：Canvas 逐帧绘制画面并叠加同一份 SVG 记分条，`MediaRecorder` 直接输出浏览器原生支持的容器。
+- 格式下拉由 `MediaRecorder.isTypeSupported` 实时生成：WebM（VP9 / VP8）、**MP4（H.264 + AAC）**、MKV（H.264）；MOV / AVI 先导出 MP4 中间文件，再用本机脚本转换。某个容器录制失败时自动回退到下一个候选，并在界面提示。
+- 转换：`python convert_video.py "棒球计分-叠加视频.mp4" --to mov`，`--to` 支持 `mp4 / mov / mkv / webm / avi`；导出后页面会给出可直接复制的命令。未安装 ffmpeg 会打印安装提示与等价手工命令，不会联网下载。
+- 录制是**实时的**（按视频原速播放一遍，需保持标签页在前台），可点「取消」；导出长度取「视频时长」与实际视频时长的较小值。需要 Chrome / Edge 桌面版。模块 `video-burn.js`（`window.ScorebugBurner`）。
+- **字幕导出（SRT / WebVTT / ASS）已按要求删除**：按钮、模块 `subtitle-export.js`、ASS 烧录脚本与相关文档全部移除。
+
+## 验证
+
+- `_refs/verify_v24_main.js`：主页面无 JS 错误、字幕 UI 为 0、格式下拉、BAS 长度、外链脚本 0。
+- `_refs/verify_v24_formats.js`：浏览器内合成短视频，逐格式真实导出并校验容器签名与扩展名。
+- `_refs/verify_v24_relay.js`：多房间 / 多客户端并发，验证状态与秒数不串台、跨房间伪造被拒、控制密钥生效、HTTP 轮询兜底。
+- `_refs/verify_v24_browser.js`：**两个独立浏览器实例**（控制器一台、OBS 一台）模拟「两个主播同时开播」，验证 A 的控制不会改到 B 的画面，并断言状态确实经线上中继到达（排除同源广播假阳性）。
+- 对公网复测：`SITE='https://…/?sharecode=…' node _refs/verify_v24_relay.js`，`SITE='…' node _refs/verify_v24_browser.js`。本地与线上两套均通过。
+- `_refs/verify_v25_cloud.js`：云服务端到端验证。在正式域名（同源）装载新构建页面，覆盖 SDK 状态、云端写入读回、另一房间无数据、错误控制密钥拒绝、非法房间号、主页面按钮真实保存、叠加层从云端恢复并渲染、干净静态版无云代码。全部通过。
+- `_refs/verify_v25_online.js`：**重新发布后**直接访问公网页面复测：云模块就绪、零外链脚本、保存到云端、叠加层从云端恢复出保存的队名与比分、另一房间不串台。全部通过。
+- `_refs/verify_v26_author.js`：逐一验证主工具、GitHub Pages 干净静态版、线上应用副本三份页面的作者栏、页脚反馈入口、B 站主页 / Issues 链接、零外链脚本、无 JS 异常、页脚位置与云代码一致性，并确认 OBS 叠加层不含作者信息；同时生成 `界面截图/12-作者信息与页脚.png`。全部通过。
 
 ## 重新构建
 
 需要 Node.js（仅用于构建，运行生成器不需要）：
 
 ```bash
-node bundle.js           # 用 _refs/generator_source.html + 依赖重新打包单文件 HTML
-node build.js            # 重建默认 BAS 与小型时间轴示例
-node build-video-bas.js  # 重建完整 BAS、示例 JSON 与 CSV 对照表
+node bundle.js                    # 用 _refs/generator_source.html + 9 个依赖（含云 SDK/配置/同步）打包单文件 HTML
+node bundle_overlay.js            # 用 _refs/live_overlay_source.html 打包 live-overlay.html（同样含云模块）
+node _refs/build_public_site.js   # 同步 public-site/：剔除全部云代码块 + 隐私检查
+node _refs/build_online_app.js    # 同步 online-app/public/ 三份静态资源
+RELAY_ORIGIN='https://…/?sharecode=…' node _refs/bake_relay.js  # 写入默认线上中继地址
+cp public-site/index.html docs/index.html && cp public-site/live-overlay.html docs/live-overlay.html
+node build.js                     # 重建默认 BAS 与小型时间轴示例
+node build-video-bas.js           # 重建完整 BAS、示例 JSON 与 CSV 对照表
+node online-app/server.js         # 本地启动线上服务（PORT 环境变量，默认 3000）
 ```
 
 ## 实现要点与已知限制
@@ -77,4 +143,4 @@ node build-video-bas.js  # 重建完整 BAS、示例 JSON 与 CSV 对照表
 
 ## 第三方依赖
 
-`jquery.min.js` 与 `bas-engine.js` 来自 jQuery 与 B 站 BAS 开源项目，版权归各自原作者所有，仅用于本地离线预览与真实脚本解析；`reference-scoreboard.png` 为界面参考图。若用于公开分发，请自行确认并保留相应的许可声明。
+`jquery.min.js` 与 `bas-engine.js` 来自 jQuery 与 B 站 BAS 开源项目，版权归各自原作者所有，仅用于本地离线预览与真实脚本解析；`reference-scoreboard.png` 为界面参考图。`cloud-sdk.global.js` 是 `@tencent-ai/workbuddy-cloud-sdk@dev` 的 IIFE 构建（从官方 CDN 下载后内联，避免运行时外链）。若用于公开分发，请自行确认并保留相应的许可声明。

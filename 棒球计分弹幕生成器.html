@@ -16,6 +16,15 @@
   h1{font-size:23px;margin:0 0 6px;letter-spacing:.2px}
   .sub{color:var(--muted);font-size:13px}
   .sub a{color:var(--brand);text-decoration:none}
+  /* 项目作者与反馈入口：纯文字 + 超链接，不自动发起任何网络请求 */
+  .author-bar{margin-top:8px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;font-size:12.5px;color:var(--muted)}
+  .author-bar b{color:var(--text);font-weight:600}
+  footer.about{margin-top:20px;padding:14px 18px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(31,41,55,.05);font-size:12.5px;line-height:1.9;color:var(--muted)}
+  footer.about .about-title{color:var(--text);font-size:13.5px;font-weight:700;margin-bottom:4px}
+  footer.about b{color:var(--text);font-weight:600}
+  footer.about a{color:var(--brand);text-decoration:none}
+  footer.about a:hover{text-decoration:underline}
+  footer.about .about-note{margin-top:4px;font-size:11.5px;color:var(--muted)}
   .grid{display:grid;grid-template-columns:390px minmax(0,1fr);gap:18px;align-items:start}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(31,41,55,.05);overflow:hidden}
   .card h2{font-size:14px;margin:0;padding:13px 16px;border-bottom:1px solid var(--line);background:#fafbfc;font-weight:600}
@@ -166,10 +175,27 @@
   .code-section{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
   .code-section .side-head{margin-bottom:6px}
   .code-section .legend{margin-top:8px}
+  /* ===== 直播控制（线上可选连接） / 视频导出 ===== */
+  .local-tools{margin-top:18px}
+  .tool-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .tool-box{border:1px solid var(--line);border-radius:9px;background:#fafbfc;padding:11px 12px}
+  .tool-title{font-size:12.5px;font-weight:700;color:var(--brand);margin-bottom:6px}
+  .tool-box .hint{line-height:1.7}
+  .tool-box .btn-row{margin-top:8px}
+  .ctl-row{display:flex;gap:6px;align-items:center;margin:6px 0;flex-wrap:wrap}
+  .ctl-row > label{flex:0 0 62px;font-size:11.5px;color:var(--muted)}
+  .ctl-row input[type=text],.ctl-row select{flex:1;min-width:90px;font-size:12px;padding:5px 8px;font-family:Consolas,Menlo,monospace}
+  .ctl-row select{font-family:inherit}
+  .link-state{font-size:11.5px;color:var(--muted);margin-top:6px;min-height:18px;word-break:break-all}
+  .link-state.on{color:var(--ok)}
+  .link-state.off{color:var(--warn)}
+  .burn-bar{height:8px;border-radius:5px;background:#e6ebf3;border:1px solid var(--line);overflow:hidden;margin-top:9px}
+  .burn-bar span{display:block;height:100%;width:0;background:var(--brand);transition:width .2s}
   @media(max-width:1050px){
     .grid{grid-template-columns:1fr}
     .video-body{grid-template-columns:1fr}
     .preview-layout{grid-template-columns:1fr}
+    .tool-grid{grid-template-columns:1fr}
     .pv-side{border-right:0;padding-right:0;border-bottom:1px solid var(--line);padding-bottom:12px}
   }
 </style>
@@ -179,6 +205,7 @@
   <header>
     <h1>棒球实时计分 · BAS 高级弹幕生成器</h1>
     <div class="sub">按 <a href="https://bilibili.github.io/bas/#/guide" target="_blank">BAS 官方指南</a>（def text / def path / set / then / duration）生成；顶部「效果预览」把在线视频画面与 BAS 弹幕叠加显示，时间轴刻度与快捷打点紧贴播放器下方；左栏接「比赛数据」（分组可折叠）与事件表，右栏下方输出可粘贴的高级弹幕代码。已移除本地模型识别。</div>
+    <div class="sub author-bar"><span>项目作者：<b>狗王IB</b></span><span>B 站主页：<a href="https://space.bilibili.com/150585" target="_blank" rel="noopener noreferrer">https://space.bilibili.com/150585</a></span><span><a href="https://github.com/2BSB/baseball-scorebug-bas" target="_blank" rel="noopener noreferrer">GitHub 项目</a></span></div>
   </header>
 
   <!-- ============ 效果预览：播放器 + 时间轴 + 手动打点（同区紧邻） ============ -->
@@ -440,6 +467,60 @@
       </div>
     </div>
   </section>
+
+  <!-- ============ 直播控制（线上可选连接） / 视频导出 ============ -->
+  <section class="card local-tools">
+    <h2>直播控制与视频导出（线上实时控制需主动连接 · 视频与文件处理全在本机）</h2>
+    <div class="body">
+      <div class="tool-grid">
+        <div class="tool-box">
+          <div class="tool-title">① 线上直播叠加层（跨设备实时控制）</div>
+          <p class="hint">控制器与 OBS 浏览器源可以在不同设备。连接后本页改动按<b>房间号</b>实时推送给同房间叠加层，不同房间互不干扰。未连接时页面完全离线，也可用 URL 快照或本地文件独立运行。</p>
+          <div class="ctl-row"><label>房间号</label><input type="text" id="roomId" maxlength="12" spellcheck="false"><button class="mini" id="btnNewRoom">换房间</button></div>
+          <div class="ctl-row"><label>中继地址</label><input type="text" id="relayServer" spellcheck="false" placeholder="https://… 或留空用当前站点"></div>
+          <div class="ctl-row"><label>叠加层地址</label><input type="text" id="overlayLink" readonly></div>
+          <div class="btn-row">
+            <button class="mini primary" id="btnRelayConnect">连接</button>
+            <button class="mini" id="btnRelayDisconnect" disabled>断开</button>
+            <button class="mini" id="btnCopyOverlayLink">复制叠加层链接</button>
+            <button class="mini" id="btnOverlaySync">立即同步状态</button>
+            <button class="mini" id="btnOpenOverlay">本地快照打开</button>
+          </div>
+          <p class="link-state" id="relayStatus">未连接 · 房间数据不会离开本机</p>
+          <!-- CLOUD-UI-START -->
+          <div class="ctl-row"><label>云端快照</label>
+            <button class="mini" type="button" id="btnCloudSave">保存到云端</button>
+            <button class="mini" type="button" id="btnCloudLoad">从云端恢复</button>
+            <span class="hint" id="cloudStatus" style="word-break:break-all">云服务未检查</span>
+          </div>
+          <!-- CLOUD-UI-END -->
+          <p class="hint">OBS 浏览器源填上面的「叠加层地址」（已带 <code>?room=…&amp;panel=0</code>），宽 1920 / 高 1080、勾选透明背景。消息只在中继内存转发、不落盘；控制器另有随机控制密钥，别人知道房间号也只能观看。按 <b>H</b> 隐藏面板、<b>空格</b> 暂停、<b>←/→</b> ±5 秒。</p>
+        </div>
+        <div class="tool-box">
+          <div class="tool-title">② 本地视频烧录导出（可选格式）</div>
+          <p class="hint">先在上方「在线视频 · 时间同步」选择本地视频，再把同一份 SVG 记分条逐帧叠进画面。录制按视频原速实时进行，请保持此标签页在前台。</p>
+          <div class="ctl-row"><label>导出格式</label><select id="burnFormat"></select></div>
+          <div class="btn-row">
+            <button class="mini primary" id="btnBurn">开始烧录并导出</button>
+            <button class="mini danger" id="btnBurnStop" disabled>取消</button>
+            <button class="mini" id="btnCopyConvert" disabled>复制转换命令</button>
+          </div>
+          <div class="burn-bar"><span id="burnBar"></span></div>
+          <p class="hint" id="burnInfo">未开始。格式列表按当前浏览器实际支持自动生成。</p>
+          <p class="hint" id="formatInfo"></p>
+        </div>
+      </div>
+      <p class="hint" id="localStatus" style="margin-top:10px;color:var(--ok);min-height:18px">视频与比赛数据只在本机浏览器处理；仅当你点击「连接」时才会与线上中继交换房间消息。</p>
+      <p class="hint">MOV / AVI 等浏览器不原生支持的容器：先导出中间文件，再运行 <code>python convert_video.py "输入.mp4" --to mov</code> 本机转换（需安装 ffmpeg）；<code>--to</code> 支持 mp4 / mov / mkv / webm / avi。也可把任意导出文件转成别的容器。</p>
+    </div>
+  </section>
+
+  <footer class="about">
+    <div class="about-title">关于作者 · 问题反馈</div>
+    <div>项目作者：<b>狗王IB</b>　｜　B 站主页：<a href="https://space.bilibili.com/150585" target="_blank" rel="noopener noreferrer">https://space.bilibili.com/150585</a></div>
+    <div>遇到使用问题，可在 <a href="https://github.com/2BSB/baseball-scorebug-bas/issues" target="_blank" rel="noopener noreferrer">GitHub 仓库留言（Issues）</a>，也可以通过 <a href="https://space.bilibili.com/150585" target="_blank" rel="noopener noreferrer">B 站后台私信</a> 联系作者；反馈时建议附上浏览器版本、复现步骤与界面截图。</div>
+    <div class="about-note">本页为纯静态工具，以上仅为文字与超链接，不会自动向 GitHub 或 B 站发起请求；只有点击链接时才会打开新标签页。</div>
+  </footer>
 </div>
 
 <script>
@@ -1185,6 +1266,613 @@ easing:e.sets[s].defaultEasing||this.options.easing||"linear",duration:e.sets[s]
 
 </script>
 <script>
+/* 线上房间中继客户端：WebSocket 优先，HTTP 长轮询兜底。
+ * 只有在调用 connect() 后才会发起连接；服务端会按连接绑定的房间号二次校验，
+ * 客户端也会丢弃房间号不匹配的推送，双保险防止多人使用时串台。
+ * RELAY-CLIENT-START / END 标记供发布检查脚本识别「唯一允许联网的代码块」。
+ */
+/* RELAY-CLIENT-START */
+(function (root, factory) {
+  var api = factory();
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else if (root) root.ScorebugRelay = api;
+})(typeof window !== 'undefined' ? window : null, function () {
+  'use strict';
+
+  function splitServer(s) {
+    s = String(s || '').trim().replace(/\/+$/, '');
+    if (!s) {
+      if (typeof location !== 'undefined' && /^https?:$/.test(location.protocol)) s = location.origin;
+      else return { base: '', ticket: '' };
+    }
+    if (!/^https?:\/\//i.test(s)) s = 'https://' + s;
+    try {
+      var u = new URL(s);
+      return { base: u.origin, ticket: u.searchParams.get('sharecode') || '' };
+    } catch (e) { return { base: s, ticket: '' }; }
+  }
+  function normServer(s) { return splitServer(s).base; }
+  function pageTicket() {
+    if (typeof location === 'undefined' || !location.search) return '';
+    try { return new URLSearchParams(location.search).get('sharecode') || ''; } catch (e) { return ''; }
+  }
+  function withTicket(url, ticket) {
+    if (!ticket) return url;
+    return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'sharecode=' + encodeURIComponent(ticket);
+  }
+  function normRoom(r) {
+    return String(r || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+  }
+  function randomPeer() {
+    var a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s = '';
+    try {
+      var w = typeof window !== 'undefined' ? window : null;
+      var c = w && (w.crypto || w.msCrypto);
+      if (!c || !c.getRandomValues) throw new Error('no crypto');
+      var b = new Uint8Array(10);
+      c.getRandomValues(b);
+      for (var i = 0; i < 10; i++) s += a[b[i] % a.length];
+    } catch (e) { for (var j = 0; j < 10; j++) s += a[Math.floor(Math.random() * a.length)]; }
+    return s;
+  }
+  function wsUrl(server, cfg, ticket) {
+    var url = server.replace(/^http/i, 'ws') + '/ws?room=' + encodeURIComponent(cfg.room) +
+      '&role=' + cfg.role + '&peer=' + encodeURIComponent(cfg.peer) +
+      (cfg.key ? '&key=' + encodeURIComponent(cfg.key) : '');
+    return withTicket(url, ticket);
+  }
+
+  function create(cfg) {
+    cfg = cfg || {};
+    var parsed = splitServer(cfg.server);
+    var server = parsed.base;
+    var ticket = cfg.ticket || parsed.ticket || pageTicket();
+    var room = normRoom(cfg.room);
+    var role = cfg.role === 'controller' ? 'controller' : 'viewer';
+    var key = cfg.key || '';
+    var peer = cfg.peer || randomPeer();
+    var stopped = false, ws = null, pollAbort = null, retryTimer = null;
+    var since = 0, queue = [], transport = 'offline', connected = false, lastError = '';
+
+    function emit() {
+      if (cfg.onStatus) cfg.onStatus({
+        connected: connected, transport: transport, room: room, server: server, detail: lastError
+      });
+    }
+    function deliver(m) {
+      if (!m || typeof m !== 'object') return;
+      if (m.room && normRoom(m.room) !== room) return;   // 房间不符直接丢弃
+      if (m.from && m.from === peer) return;             // 忽略自己发出的回声
+      if (typeof m.seq === 'number') since = Math.max(since, m.seq);
+      if (cfg.onMessage) cfg.onMessage(m);
+    }
+    function flush() {
+      if (!ws || ws.readyState !== 1) return;
+      while (queue.length) {
+        try { ws.send(JSON.stringify(queue.shift())); } catch (e) { break; }
+      }
+    }
+    function send(m) {
+      if (stopped) return false;
+      m = m || {};
+      /* 不携带 room/key：房间归属完全由服务端按连接决定，杜绝伪造跨房间消息 */
+      var out = { type: m.type, payload: m.payload, t: m.t, from: peer };
+      if (transport === 'ws' && ws && ws.readyState === 1) {
+        try { ws.send(JSON.stringify(out)); return true; } catch (e) {}
+      } else if (transport === 'poll') {
+        pushHttp(out); return true;
+      }
+      if (queue.length < 12) queue.push(out);
+      return false;
+    }
+    function pushHttp(out) {
+      var body = JSON.stringify({
+        room: room, role: role, key: key, peer: peer,
+        type: out.type, payload: out.payload, t: out.t, from: out.from
+      });
+      fetch(withTicket(server + '/api/push', ticket), {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body
+      }).then(function (r) { return r.json(); }).then(function (j) {
+        if (j && j.error) { lastError = j.error; emit(); }
+      }).catch(function (e) { lastError = '推送失败：' + e.message; emit(); });
+    }
+    function pollLoop() {
+      if (stopped || transport !== 'poll') return;
+      pollAbort = new AbortController();
+      fetch(withTicket(server + '/api/poll?room=' + encodeURIComponent(room) +
+            '&role=' + role + '&peer=' + encodeURIComponent(peer) + '&since=' + since, ticket),
+            { signal: pollAbort.signal })
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          (j.messages || []).forEach(deliver);
+          if (j.presence) deliver(j.presence);
+          pollLoop();
+        })
+        .catch(function (e) {
+          if (stopped || e.name === 'AbortError') return;
+          lastError = '轮询中断，稍后重试'; emit();
+          retryTimer = setTimeout(pollLoop, 1500);
+        });
+    }
+    function startPolling(reason) {
+      if (stopped || transport === 'poll') return;
+      transport = 'poll'; connected = true;
+      lastError = reason ? 'WebSocket 不可用，已切换 HTTP 长轮询' : '';
+      emit(); flushHttpQueue(); pollLoop();
+    }
+    function flushHttpQueue() {
+      while (queue.length) pushHttp(queue.shift());
+    }
+    function connect() {
+      if (stopped) return;
+      if (!server || !room) {
+        lastError = '缺少房间号或中继地址'; transport = 'offline'; connected = false; emit(); return;
+      }
+      if (typeof WebSocket === 'undefined') { startPolling('浏览器不支持 WebSocket'); return; }
+      var opened = false;
+      try { ws = new WebSocket(wsUrl(server, { room: room, role: role, key: key, peer: peer }, ticket)); }
+      catch (e) { startPolling(e.message); return; }
+      var t = setTimeout(function () {
+        if (!opened && !stopped) { try { ws.close(); } catch (e) {} startPolling('连接超时'); }
+      }, 4000);
+      ws.onopen = function () {
+        if (stopped) return;
+        opened = true; clearTimeout(t); transport = 'ws'; connected = true; lastError = ''; emit(); flush();
+      };
+      ws.onmessage = function (ev) { try { deliver(JSON.parse(ev.data)); } catch (e) {} };
+      ws.onerror = function () {};
+      ws.onclose = function () {
+        clearTimeout(t);
+        if (stopped) return;
+        if (!opened) { startPolling('WebSocket 被拒绝'); return; }
+        connected = false; transport = 'reconnecting'; lastError = '连接断开，正在重连'; emit();
+        retryTimer = setTimeout(function () { if (!stopped && transport !== 'poll') connect(); }, 1800);
+      };
+    }
+    function close() {
+      stopped = true; connected = false; transport = 'offline';
+      clearTimeout(retryTimer);
+      if (pollAbort) { try { pollAbort.abort(); } catch (e) {} }
+      if (ws) { try { ws.close(); } catch (e) {} }
+      ws = null; queue.length = 0;
+      emit();
+    }
+    return {
+      connect: connect, close: close, send: send, peer: peer,
+      status: function () {
+        return { connected: connected, transport: transport, room: room, server: server, detail: lastError };
+      }
+    };
+  }
+
+  return {
+    create: create, normServer: normServer, splitServer: splitServer,
+    normRoom: normRoom, randomPeer: randomPeer, pageTicket: pageTicket
+  };
+});
+/* RELAY-CLIENT-END */
+
+</script>
+<script>
+/* 本地视频烧录（纯浏览器，不上传）：Canvas 逐帧绘制视频 + 同一份 SVG 记分条。
+ * MediaRecorder 直出浏览器原生支持的容器（WebM / MP4 / MKV 等）；
+ * MOV / AVI 等不原生支持的容器先导出中间文件，再用 convert_video.py 本机转换。
+ * 录制是实时的（需按视频时长播放一遍），请保持标签页在前台。
+ */
+(function (root, factory) {
+  var G = (typeof module !== 'undefined' && module.exports)
+    ? require('./scorebug-generator.js')
+    : (root && root.ScorebugBAS);
+  var api = factory(G);
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else if (root) root.ScorebugBurner = api;
+})(typeof window !== 'undefined' ? window : null, function (G) {
+  'use strict';
+
+  var WEBM = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus',
+              'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+  var MP4 = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1', 'video/mp4'];
+  var MKV = ['video/x-matroska;codecs=avc1', 'video/x-matroska;codecs=avc1,opus', 'video/x-matroska'];
+
+  /* convertTo 为空 = 浏览器直出；否则先录制 mimes 里的中间容器，再本机转换为目标扩展名 */
+  var FORMATS = [
+    { id: 'webm-vp9', label: 'WebM · VP9 + Opus（原生，推荐）', mimes: WEBM.slice(0, 1).concat(WEBM.slice(2)), convertTo: '' },
+    { id: 'webm-vp8', label: 'WebM · VP8 + Opus（原生，兼容性最好）', mimes: [WEBM[1], WEBM[3], WEBM[4]], convertTo: '' },
+    { id: 'mp4-h264', label: 'MP4 · H.264 + AAC（原生，播放器通用）', mimes: MP4, convertTo: '' },
+    { id: 'mkv-h264', label: 'MKV · H.264（原生）', mimes: MKV, convertTo: '' },
+    { id: 'mov-h264', label: 'MOV · H.264（导出后本机转换）', mimes: MP4, convertTo: 'mov' },
+    { id: 'avi-mpeg4', label: 'AVI · MPEG-4（导出后本机转换）', mimes: MP4, convertTo: 'avi' }
+  ];
+
+  function hasMR() { return typeof MediaRecorder !== 'undefined'; }
+  function supported(mime) {
+    return hasMR() && !!MediaRecorder.isTypeSupported && !!mime && MediaRecorder.isTypeSupported(mime);
+  }
+  function firstSupported(list) {
+    for (var i = 0; i < list.length; i++) if (supported(list[i])) return list[i];
+    return '';
+  }
+  function extFromMime(mime) {
+    if (/mp4/i.test(mime)) return 'mp4';
+    if (/matroska|webm.*mkv/i.test(mime)) return 'mkv';
+    return 'webm';
+  }
+  function isSupported() {
+    if (typeof document === 'undefined' || !hasMR())
+      return { ok: false, reason: '当前浏览器不支持 MediaRecorder，请用 Chrome / Edge 桌面版。' };
+    if (typeof HTMLCanvasElement === 'undefined' || !HTMLCanvasElement.prototype.captureStream)
+      return { ok: false, reason: '当前浏览器不支持 canvas.captureStream，请用 Chrome / Edge 桌面版。' };
+    if (typeof HTMLVideoElement === 'undefined' ||
+        (!HTMLVideoElement.prototype.captureStream && !HTMLVideoElement.prototype.mozCaptureStream))
+      return { ok: false, audio: false, okWithoutAudio: true, reason: '视频音轨捕获不可用，将导出无声音的视频。' };
+    return { ok: true, audio: true, reason: '' };
+  }
+  function resolveFormat(id) {
+    var f = FORMATS.filter(function (x) { return x.id === id; })[0] || FORMATS[0];
+    var nativeMime = firstSupported(f.mimes);
+    var mime = nativeMime || firstSupported(WEBM) || '';
+    return {
+      id: f.id, label: f.label, mime: mime, ext: extFromMime(mime) || 'webm',
+      native: !!nativeMime, fallback: !nativeMime,
+      targetExt: f.convertTo || '', needsConversion: !!f.convertTo
+    };
+  }
+  function listFormats() {
+    return FORMATS.map(function (f) {
+      var r = resolveFormat(f.id);
+      return {
+        id: r.id, label: r.label, ext: r.ext, targetExt: r.targetExt,
+        needsConversion: r.needsConversion, native: r.native, fallback: r.fallback,
+        supported: !!r.mime, mime: r.mime,
+        note: r.needsConversion ? ('先导出 .' + r.ext + '，再本机转成 .' + r.targetExt)
+              : (r.fallback ? '当前浏览器不支持该容器，将回退 WebM' : '浏览器原生直出 .' + r.ext)
+      };
+    });
+  }
+  function defaultFormatId() { return resolveFormat('webm-vp9').native ? 'webm-vp9' : 'mp4-h264'; }
+  function convertCommand(filename, targetExt) {
+    return 'python convert_video.py "' + filename + '" --to ' + (targetExt || 'mp4');
+  }
+  function svgMarkup(state, options, fitState) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 562.5" width="1000" height="562.5">' +
+      G.renderSVG(state, options, { fieldBg: false, fitState: fitState }) + '</svg>';
+  }
+  function makeImage(svg) {
+    var img = new Image();
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    return img;
+  }
+  function stateSig(s) {
+    return [s.awayName, s.awayScore, s.homeName, s.homeScore, s.inning, s.half,
+            s.balls, s.strikes, s.outs, s.b1, s.b2, s.b3].join('|');
+  }
+  function downloadBlob(filename, blob) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+  }
+
+  /* cfg: { file, initial, events, options, duration, format, maxWidth,
+   *        onStatus, onProgress, onDone, onError } */
+  function burn(cfg) {
+    var cancelled = false, finished = false;
+    var video = null, canvas = null, ctx = null, objUrl = null;
+    var recorder = null, stream = null, vstream = null, raf = 0;
+    var chunks = [], currentImg = null, lastSig = '', mimeUsed = '';
+    var W = 1280, H = 720, scale = 1, drawH = 720, drawY = 0;
+    var durationLimit = Math.max(1, Number(cfg.duration) || 600);
+    var fitState = G.worstFitState(cfg.initial, cfg.events || []);
+    var res = resolveFormat(cfg.format);
+    var candidates = [];
+    [res.mime].concat(res.needsConversion ? MP4 : []).concat(WEBM).concat([''])
+      .forEach(function (m) { if (m && candidates.indexOf(m) < 0) candidates.push(m); });
+    if (!candidates.length) candidates.push('');
+
+    function status(m) { if (cfg.onStatus) cfg.onStatus(m); }
+    function fail(m) { cleanup(); if (cfg.onError) cfg.onError(m); }
+    function cleanup() {
+      if (raf) cancelAnimationFrame(raf), raf = 0;
+      try { if (video) video.pause(); } catch (e) {}
+      [stream, vstream].forEach(function (st) {
+        if (st && st.getTracks) st.getTracks().forEach(function (t) { try { t.stop(); } catch (e) {} });
+      });
+      if (video && video.parentNode) video.parentNode.removeChild(video);
+      if (objUrl) URL.revokeObjectURL(objUrl), objUrl = null;
+      video = null; stream = null; vstream = null; recorder = null;
+    }
+    function finish() {
+      if (finished) return;
+      finished = true;
+      if (raf) cancelAnimationFrame(raf), raf = 0;
+      try { video.pause(); } catch (e) {}
+      if (recorder && recorder.state !== 'inactive') recorder.stop();
+      else cleanup();
+    }
+    function frame() {
+      if (finished || cancelled || !video) return;
+      var t = video.currentTime;
+      try { ctx.drawImage(video, 0, 0, W, H); } catch (e) {}
+      var s = G.stateAtTime(cfg.initial, cfg.events || [], t);
+      var sig = stateSig(s);
+      if (sig !== lastSig) {
+        lastSig = sig;
+        var img = makeImage(svgMarkup(s, cfg.options, fitState));
+        img.onload = function () { currentImg = img; };
+      }
+      if (currentImg && currentImg.complete && currentImg.naturalWidth)
+        ctx.drawImage(currentImg, 0, drawY, W, drawH);
+      if (cfg.onProgress) cfg.onProgress(Math.min(1, t / durationLimit), t);
+      if (video.ended || t >= durationLimit - 0.04) { finish(); return; }
+      raf = requestAnimationFrame(frame);
+    }
+
+    /* 某些浏览器对 MP4/MKV 的声明支持与音轨组合不一致：出错且尚无数据时自动回退下一个候选容器 */
+    function startRecorder(idx) {
+      var c = idx < candidates.length ? candidates[idx] : '';
+      var opts = c ? { mimeType: c, videoBitsPerSecond: 8000000 } : { videoBitsPerSecond: 8000000 };
+      try { recorder = new MediaRecorder(stream, opts); }
+      catch (e) {
+        if (idx + 1 < candidates.length) return startRecorder(idx + 1);
+        fail('录制器创建失败：' + e.message); return;
+      }
+      mimeUsed = c || '';
+      chunks = [];
+      recorder.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+      recorder.onstop = function () {
+        if (cancelled) { cleanup(); return; }
+        var ext = extFromMime(mimeUsed) || 'webm';
+        var blob = new Blob(chunks, { type: mimeUsed || 'video/webm' });
+        if (cfg.onDone) cfg.onDone(blob, {
+          audio: (stream.getAudioTracks ? stream.getAudioTracks().length : 0) > 0,
+          width: W, height: H, duration: durationLimit,
+          mime: mimeUsed, ext: ext, formatId: res.id, label: res.label,
+          targetExt: res.targetExt, needsConversion: res.needsConversion,
+          fallback: mimeUsed !== res.mime
+        });
+        cleanup();
+      };
+      recorder.onerror = function (e) {
+        if (!finished && !cancelled && !chunks.length && idx + 1 < candidates.length) {
+          recorder.onstop = null; recorder.onerror = null;
+          try { if (recorder.state !== 'inactive') recorder.stop(); } catch (e2) {}
+          status('该容器录制失败，自动回退到 ' + (candidates[idx + 1] || '浏览器默认') + '…');
+          startRecorder(idx + 1); return;
+        }
+        fail('录制出错：' + (e.error && e.error.message ? e.error.message : '请改用 WebM 格式重试'));
+      };
+      try { recorder.start(1000); }
+      catch (e) {
+        if (idx + 1 < candidates.length) return startRecorder(idx + 1);
+        fail('录制启动失败：' + e.message); return;
+      }
+      status('录制中（' + (mimeUsed || '浏览器默认容器') + '）' +
+        (stream.getAudioTracks && stream.getAudioTracks().length ? '（含原声）' : '（静音）') +
+        '，请勿切到后台标签页。');
+    }
+
+    (function start() {
+      var probe = isSupported();
+      if (!probe.ok && !probe.okWithoutAudio) { fail(probe.reason); return; }
+      video = document.createElement('video');
+      video.playsInline = true; video.preload = 'auto';
+      video.style.cssText = 'position:fixed;left:-99999px;width:2px;height:2px;opacity:0';
+      document.body.appendChild(video);
+      objUrl = URL.createObjectURL(cfg.file);
+      video.src = objUrl;
+      status('正在读取本地视频元数据…');
+      video.addEventListener('loadedmetadata', function () {
+        var real = isFinite(video.duration) ? video.duration : durationLimit;
+        durationLimit = Math.min(real, durationLimit) || real;
+        var maxW = Number(cfg.maxWidth) || 1920;
+        W = Math.min(maxW, video.videoWidth || 1280);
+        H = Math.round(W * (video.videoHeight || 720) / (video.videoWidth || 1280));
+        canvas = document.createElement('canvas');
+        canvas.width = W; canvas.height = H;
+        ctx = canvas.getContext('2d');
+        scale = W / 1000;
+        drawH = 562.5 * scale;
+        drawY = Math.max(0, (H - drawH) / 2);
+        var first = G.stateAtTime(cfg.initial, cfg.events || [], 0);
+        lastSig = stateSig(first);
+        var img0 = makeImage(svgMarkup(first, cfg.options, fitState));
+        img0.onload = function () { currentImg = img0; };
+        status('开始录制：' + W + '×' + H + '，约 ' + Math.round(durationLimit) + ' 秒，按视频原速播放一遍。');
+        var p;
+        try { video.currentTime = 0; p = video.play(); } catch (e) { fail('无法播放该视频：' + e.message); return; }
+        Promise.resolve(p).then(function () {
+          try {
+            vstream = video.captureStream ? video.captureStream() :
+                      (video.mozCaptureStream ? video.mozCaptureStream() : null);
+          } catch (e) { vstream = null; }
+          stream = canvas.captureStream(30);
+          if (vstream && vstream.getAudioTracks) {
+            vstream.getAudioTracks().forEach(function (tr) { stream.addTrack(tr); });
+          }
+          startRecorder(0);
+          raf = requestAnimationFrame(frame);
+        }).catch(function (e) { fail('浏览器拒绝播放视频：' + e.message); });
+      }, { once: true });
+      video.addEventListener('error', function () {
+        fail('视频解码失败，请换用 Chrome / Edge 支持的 MP4 / WebM / MOV(H.264) 文件。');
+      }, { once: true });
+    })();
+
+    return {
+      stop: function () {
+        cancelled = true;
+        status('已取消，本次录制不会导出文件。');
+        finish();
+      },
+      isRunning: function () { return !finished && !cancelled; }
+    };
+  }
+
+  return {
+    isSupported: isSupported, burn: burn, downloadBlob: downloadBlob, svgMarkup: svgMarkup,
+    FORMATS: FORMATS, listFormats: listFormats, resolveFormat: resolveFormat,
+    defaultFormatId: defaultFormatId, convertCommand: convertCommand
+  };
+});
+
+</script>
+<!-- CLOUD-ASSETS-START -->
+<script>
+var WorkBuddyCloud=(()=>{var ie=Object.defineProperty;var _t=Object.getOwnPropertyDescriptor;var Tt=Object.getOwnPropertyNames;var Ot=Object.prototype.hasOwnProperty;var a=(r,e)=>ie(r,"name",{value:e,configurable:!0});var At=(r,e)=>{for(var t in e)ie(r,t,{get:e[t],enumerable:!0})},Rt=(r,e,t,s)=>{if(e&&typeof e=="object"||typeof e=="function")for(let n of Tt(e))!Ot.call(r,n)&&n!==t&&ie(r,n,{get:()=>e[n],enumerable:!(s=_t(e,n))||s.enumerable});return r};var $t=r=>Rt(ie({},"__esModule",{value:!0}),r);var nr={};At(nr,{AuthModule:()=>D,CLOUD_MODULE_PATHS:()=>R,CLOUD_PATH_PREFIX:()=>j,CloudOpenAIError:()=>x,CloudStoragePathError:()=>w,DEFAULT_SIGNED_URL_TTL_SECONDS:()=>ge,LlmModule:()=>M,MAX_SIGNED_URL_TTL_SECONDS:()=>ye,PUBLISHABLE_KEY_HEADER:()=>be,RUNTIME_STORAGE_BUCKET:()=>W,WorkBuddyCloudClient:()=>se,WorkBuddyCloudConfigError:()=>T,WorkBuddyDatabaseModule:()=>J,WorkBuddyStorageBucket:()=>H,WorkBuddyStorageDownload:()=>te,WorkBuddyStorageModule:()=>re,anonymousTokenProvider:()=>oe,createMemoryStorage:()=>ke,createWorkBuddyCloud:()=>vt,getModelCapability:()=>Oe,getModelDisplayName:()=>Te,shouldClearCredentials:()=>Pt});var T=class extends Error{static{a(this,"WorkBuddyCloudConfigError")}constructor(e){super(e),this.name="WorkBuddyCloudConfigError"}};var Ut=/^wbpk_/;function Le(r,e){if(typeof r!="string"||r.trim()==="")throw new T(`${e} is required and must be a non-empty string.`);let t=r.trim(),s;try{s=new URL(t)}catch{throw new T(`${e} must be an absolute URL, received: ${t}`)}if(s.protocol!=="https:"&&s.protocol!=="http:")throw new T(`${e} must use http(s), received protocol: ${s.protocol}`);return t.replace(/\/+$/,"")}a(Le,"normalizeHttpUrl");function It(r){if(r!=null&&r!=="")return Le(r,"endpoint");let e=globalThis.location?.origin;if(typeof e!="string"||e==="")throw new T("endpoint is required outside browsers (no location.origin to fall back to).");return e.replace(/\/+$/,"")}a(It,"resolveEndpoint");function Ct(r){if(typeof r!="string"||r.trim()==="")throw new T("publishableKey is required and must be a non-empty string.");let e=r.trim();if(!Ut.test(e))throw new T('publishableKey must start with "wbpk_".');return e}a(Ct,"normalizePublishableKey");function Lt(r){if(r)return r;if(typeof globalThis.fetch!="function")throw new T("Global fetch is unavailable in this runtime; pass options.fetch explicitly.");return globalThis.fetch.bind(globalThis)}a(Lt,"resolveFetch");function je(r){if(!r||typeof r!="object")throw new T("createWorkBuddyCloud requires publishableKey.");return Object.freeze({endpoint:It(r.endpoint),oauthRelayBaseUrl:r.oauthRelayBaseUrl?Le(r.oauthRelayBaseUrl,"oauthRelayBaseUrl"):"",publishableKey:Ct(r.publishableKey),fetch:Lt(r.fetch)})}a(je,"resolveRuntimeConfig");var be="x-wb-webapp-access-key";function we(r,e){return async(t,s)=>{let n=new Headers(s?.headers);if(n.set(be,r.publishableKey),!n.has("Authorization")){let i=await e();i&&n.set("Authorization",`Bearer ${i}`)}return r.fetch(t,{...s,headers:n})}}a(we,"createCloudFetch");var oe=a(()=>Promise.resolve(void 0),"anonymousTokenProvider");var j="/.cloud",R=Object.freeze({auth:`${j}/auth`,database:`${j}/database/rest`,storage:`${j}/storage`,llm:`${j}/llm`});var jt="workbuddy-cloud.pkce.workbuddy.",Bt="workbuddy-cloud.pkce-done.workbuddy.";function Be(r){let e="";for(let t of r)e+=String.fromCharCode(t);return btoa(e).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}a(Be,"base64UrlEncode");function De(){let r=globalThis.crypto;return typeof r?.getRandomValues=="function"&&typeof r?.subtle?.digest=="function"&&typeof globalThis.btoa=="function"}a(De,"hasWebCrypto");function Ne(){let r=new Uint8Array(32);return globalThis.crypto.getRandomValues(r),Be(r)}a(Ne,"createCodeVerifier");async function Me(r){let e=new TextEncoder().encode(r),t=await globalThis.crypto.subtle.digest("SHA-256",e);return Be(new Uint8Array(t))}a(Me,"computeS256Challenge");var ae=class{static{a(this,"WorkBuddyPkceStore")}verifierKey;consumedKey;constructor(e){this.verifierKey=jt+e,this.consumedKey=Bt+e}usable(){let e=this.storage();if(!e)return!1;try{let t=`${this.verifierKey}.probe`;return e.setItem(t,"1"),e.removeItem(t),!0}catch{return!1}}saveVerifier(e){try{let t=this.storage();return t?(t.setItem(this.verifierKey,e),t.removeItem(this.consumedKey),!0):!1}catch{return!1}}readVerifier(){try{return this.storage()?.getItem(this.verifierKey)??null}catch{return null}}clearVerifier(){try{this.storage()?.removeItem(this.verifierKey)}catch{}}markConsumed(e){try{this.storage()?.setItem(this.consumedKey,e)}catch{}}isConsumed(e){try{return!!e&&this.storage()?.getItem(this.consumedKey)===e}catch{return!1}}storage(){try{return globalThis.sessionStorage??null}catch{return null}}};var b={signUp:"/v1/signup",signIn:"/v1/signin",signInWithProvider:"/v1/signin/with/provider",token:"/v1/token",loginWechat:"/v1/login-wechat",loginWechatWeb:"/v1/login-wechat-web",loginWorkBuddy:"/v1/login-workbuddy",loginWorkBuddyMiniProgram:"/v1/login-workbuddy-miniprogram",signOut:"/v1/user/signout",userMe:"/v1/user/me",verification:"/v1/verification",verificationVerify:"/v1/verification/verify",resetPassword:"/v1/reset",sudo:"/v1/user/sudo",userPassword:"/v1/user/password"};function Se(r,e){let t=r??{},s=typeof t.access_token=="string"?t.access_token:"";if(!s)throw Mt("response has no access_token");let n=typeof t.refresh_token=="string"?t.refresh_token:"",i=typeof t.expires_in=="number"?t.expires_in:0;return{accessToken:s,refreshToken:n,expiresAt:e+i*1e3,user:Dt(t)}}a(Se,"parseSession");function Dt(r){let e=r.is_anonymous===!0;return{id:typeof r.sub=="string"?r.sub:"",name:O(r.name),avatarUrl:O(r.avatar_url),isAnonymous:e,raw:r}}a(Dt,"userFromSessionPayload");function Fe(r){let e=r??{},t=typeof e.sub=="string"?e.sub:typeof e.uid=="string"?e.uid:"",s=e.user_metadata??{};return{id:t,email:O(e.email)??O(s.email),phone:O(e.phone_number)??O(e.phone),name:O(e.name),avatarUrl:O(e.avatar_url),isAnonymous:e.is_anonymous===!0||e.scope==="anonymous",raw:e}}a(Fe,"parseUser");function O(r){return typeof r=="string"&&r!==""?r:void 0}a(O,"pickString");function qe(r,e){let t=e??{},s=typeof t.error=="string"?t.error:void 0,n=O(t.error_description)??O(t.message)??O(t.msg)??`HTTP ${r}`;return{kind:Nt(r,s),message:n,status:r,code:s,cause:e}}a(qe,"normalizeHttpError");function Nt(r,e){if(e==="invalid_grant")return"unauthenticated";switch(r){case 400:return"invalid-request";case 401:return"unauthenticated";case 403:return"permission-denied";case 404:return"not-found";case 429:return"rate-limited";case 501:return"unimplemented";case 503:return"backend-unavailable";default:return r>=500?"backend-unavailable":"unknown"}}a(Nt,"errorKind");function K(r){return{kind:"network",message:`request failed before a response was received: ${r instanceof Error?r.message:String(r)}`,status:0,cause:r}}a(K,"normalizeNetworkError");function Mt(r){let e=new Error(`workbuddy-cloud auth: ${r}`);return e.kind="unknown",e.status=0,e}a(Mt,"sessionShapeError");var ce=class{static{a(this,"SessionManager")}store;refresh;emit;isCredentialsRejected;now;inflight=null;signOutEpoch=0;lastFailure=null;constructor(e){this.store=e.store,this.refresh=e.refresh,this.emit=e.emit,this.isCredentialsRejected=e.isCredentialsRejected,this.now=e.now??Date.now}peek(){return this.store.read()}async ensure(){let e=this.store.read();return e?this.isExpiring(e)?e.refreshToken?this.refreshOnce(e):this.abandon():e:null}async forceRefresh(){let e=this.store.read();return e?.refreshToken?this.refreshOnce(e,{ignoreCooldown:!0}):null}commitSignIn(e){return this.lastFailure=null,this.store.write(e),this.emit("SIGNED_IN",e),e}commitUserUpdate(e){return this.store.write(e),this.emit("USER_UPDATED",e),e}clear(){this.signOutEpoch+=1,this.lastFailure=null,this.inflight=null,this.store.clear(),this.emit("SIGNED_OUT",null)}isExpiring(e){return typeof e.expiresAt!="number"?!0:e.expiresAt-this.now()<9e4}refreshOnce(e,t={}){if(this.inflight)return this.inflight;if(!t.ignoreCooldown&&this.inCooldown(e.refreshToken))return Promise.resolve(null);let s=this.doRefresh(e).finally(()=>{this.inflight=null});return this.inflight=s,s}inCooldown(e){let t=this.lastFailure;return t!==null&&t.token===e&&this.now()-t.at<6e4}async doRefresh(e){let t=this.signOutEpoch,s=e.refreshToken,n;try{n=await this.refresh(s)}catch(o){return this.onRefreshFailed(s,o)}if(this.signOutEpoch!==t)return this.store.clear(),null;let i=this.store.read();return i&&i.refreshToken!==s?i:(this.lastFailure=null,this.store.write(n),this.emit("TOKEN_REFRESHED",n),n)}onRefreshFailed(e,t){return this.isCredentialsRejected(t)?this.abandon():(this.lastFailure={token:e,at:this.now()},null)}abandon(){return this.store.clear(),this.lastFailure=null,this.emit("SIGNED_OUT",null),null}};var Ft="workbuddy-cloud.session.";function ke(){let r=new Map;return{getItem:a(e=>r.get(e)??null,"getItem"),setItem:a((e,t)=>{r.set(e,t)},"setItem"),removeItem:a(e=>{r.delete(e)},"removeItem")}}a(ke,"createMemoryStorage");function We(r){if(r)return r;try{let e="__workbuddy_probe__";return globalThis.localStorage.setItem(e,"1"),globalThis.localStorage.removeItem(e),globalThis.localStorage}catch{return ke()}}a(We,"resolveStorage");var ue=class{static{a(this,"SessionStore")}storage;key;constructor(e,t){this.storage=e,this.key=Ft+t}read(){let e;try{e=this.storage.getItem(this.key)}catch{return null}if(!e)return null;try{let t=JSON.parse(e);return qt(t)?t:this.discard()}catch{return this.discard()}}write(e){try{this.storage.setItem(this.key,JSON.stringify(e))}catch{}}clear(){try{this.storage.removeItem(this.key)}catch{}}discard(){return this.clear(),null}};function qt(r){if(!r||typeof r!="object")return!1;let e=r;return typeof e.accessToken=="string"&&e.accessToken!==""&&typeof e.refreshToken=="string"&&typeof e.expiresAt=="number"&&!!e.user&&typeof e.user=="object"}a(qt,"isStoredSession");function B(r,e){let t=r.email??"",s=r.phone??"";return!!t==!!s?{data:null,error:{kind:"invalid-request",message:`${e} requires exactly one of email or phone`,status:0}}:{data:t?{kind:"email",value:t,username:t}:{kind:"phone",value:s,username:Wt(s)},error:null}}a(B,"resolveAuthIdentifier");function Wt(r){let t=r.replace(/\D/g,"");return t.startsWith("0086")?t=t.slice(4):t.startsWith("86")&&t.length===13&&(t=t.slice(2)),/^1\d{10}$/.test(t)?`+86 ${t}`:r}a(Wt,"normalizePhone");var He="wx907c65e5e107ddcf",Ht="subpackages/secondary/oauth-authorize/index";var de=class{static{a(this,"WorkBuddyMiniProgramAuth")}storage;platform;exchange;key;starting;exchanges=new Map;constructor(e,t,s,n){this.storage=t,this.platform=s,this.exchange=n,this.key=`workbuddy-cloud.miniprogram-workbuddy.${e}`}async signIn(e){if(this.starting)return this.starting;let t=this.start(e);this.starting=t;try{return await t}finally{this.starting=void 0}}async start(e){if(typeof e?.redirectPath!="string"||!e.redirectPath.trim())return P("invalid_request","WorkBuddy login requires redirectPath");let t=this.platform.applicationId;if(typeof t!="string"||!t.trim())return P("invalid_request","WorkBuddy login requires publicConfig.workBuddyOAuthClientId");try{let s=this.platform.getEnvVersion?.(),n=await this.platform.createState(),i={state:n,appId:He,expiresAt:Date.now()+6e5},o=JSON.stringify(i);if(this.storage.setItem(this.key,o),this.storage.getItem(this.key)!==o)return P("storage_unavailable","Could not persist WorkBuddy login; sign in again");let c=await this.platform.navigate({appId:He,path:`${Ht}?client_id=${encodeURIComponent(t)}&redirect_uri=${encodeURIComponent(e.redirectPath)}&state=${encodeURIComponent(n)}`+(s?`&envVersion=${s}`:""),envVersion:"release"});return c.error&&this.storage.removeItem(this.key),c}catch(s){return P("miniprogram_login_failed",xe(s))}}async handleCallback(e){let t=e?.referrerInfo,s=Ke(t?.extraData);if(!s||!s.code&&!s.error)return{data:null,error:null};let n=typeof s.state=="string"?this.exchanges.get(s.state):void 0;if(n)return t?.appId===n.appId?n.task:P("invalid_request","WorkBuddy callback does not match the login source");let i;try{i=this.readPending()}catch(c){return P("storage_unavailable",xe(c))}if(!i)return{data:null,error:null};if(typeof s.state!="string"||!s.state)return P("invalid_request","WorkBuddy callback requires state");if(t?.appId!==i.appId||s.state!==i.state)return P("invalid_request","WorkBuddy callback does not match the login source or state");if(!(typeof s.code=="string"&&s.code)&&!(typeof s.error=="string"&&s.error))return P("invalid_request","WorkBuddy callback has no authorization code");if(!s.error&&(typeof s.redirect_uri!="string"||!s.redirect_uri.trim()))return P("invalid_request","WorkBuddy callback requires redirect_uri");try{if(this.storage.removeItem(this.key),this.storage.getItem(this.key)!==null)return P("storage_unavailable","Could not consume WorkBuddy login; sign in again")}catch(c){return P("storage_unavailable",xe(c))}if(i.expiresAt<=Date.now())return P("invalid_grant","WorkBuddy login expired; sign in again","unauthenticated");if(s.error)return P(String(s.error),typeof s.error_description=="string"?s.error_description:"WorkBuddy authorization was not completed","permission-denied");let o=this.exchange({code:s.code,state:i.state,shortlink:s.redirect_uri});this.exchanges.set(i.state,{appId:i.appId,task:o});try{return await o}finally{this.exchanges.delete(i.state)}}readPending(){let e=this.storage.getItem(this.key);if(!e)return null;let t=Ke(JSON.parse(e));if(!t||typeof t.state!="string"||typeof t.appId!="string"||typeof t.expiresAt!="number")throw new Error("Invalid saved WorkBuddy login; sign in again");return t}};function Ke(r){return r!==null&&typeof r=="object"&&!Array.isArray(r)?r:null}a(Ke,"record");function P(r,e,t="invalid-request"){return{data:null,error:{kind:t,code:r,message:e,status:0}}}a(P,"failure");function xe(r){return r instanceof Error?r.message:String(r)}a(xe,"describe");var Ge=200;function Je(r,e){let t=Array.from(r);return t.length<=e?r:`${t.slice(0,e).join("")}\u2026`}a(Je,"truncateMessage");function Ee(r){let e=r.get("error");if(!e)return null;let t=r.get("error_description"),s=t?`oauth provider rejected the request: ${e}: ${t}`:`oauth provider rejected the request: ${e}`;return Je(s,Ge)}a(Ee,"oauthProviderRejectMessage");var D=class{static{a(this,"AuthModule")}fetch;baseUrl;sessions;storage;oauthRelayBaseUrl;workBuddyPkce;workBuddyMiniProgram;workBuddyExchanges=new Map;listeners=new Map;nextListenerId=1;constructor(e,t,s={}){this.fetch=t,this.baseUrl=`${e.endpoint}${R.auth}`,this.oauthRelayBaseUrl=e.oauthRelayBaseUrl,this.storage=We(s.storage),this.workBuddyPkce=new ae(e.publishableKey),this.sessions=new ce({store:new ue(this.storage,e.publishableKey),refresh:a(n=>this.exchangeRefreshHandle(n),"refresh"),emit:a((n,i)=>this.notify(n,i),"emit"),isCredentialsRejected:a(n=>le(n)&&Ve(n),"isCredentialsRejected")}),s.workBuddyMiniProgram&&(this.workBuddyMiniProgram=new de(e.publishableKey,this.storage,s.workBuddyMiniProgram,n=>this.postForSession(b.loginWorkBuddyMiniProgram,n)))}async getAccessToken(){return(await this.sessions.ensure())?.accessToken}async signInWithWorkBuddyMiniProgram(e){return this.workBuddyMiniProgram?this.workBuddyMiniProgram.signIn(e):h({kind:"unimplemented",status:0,message:"Use createMiniProgramWorkBuddyCloud for WorkBuddy mini program login"})}async handleWorkBuddyMiniProgramCallback(e){return this.workBuddyMiniProgram?this.workBuddyMiniProgram.handleCallback(e):h({kind:"unimplemented",status:0,message:"Use createMiniProgramWorkBuddyCloud for WorkBuddy mini program login"})}async signInWithPassword(e){if(!e.password)return h(p("signInWithPassword requires a password"));let t=B(e,"signInWithPassword");return t.error?h(t.error):this.postForSession(b.signIn,{username:t.data.username,password:e.password})}async signInWithWechat(e,t){return e?t?this.postForSession(b.loginWechat,{code:e,appid:t}):h(p("signInWithWechat requires appid")):h(p("signInWithWechat requires code"))}async signUp(e){let t=B(e,"signUp");if(t.error)return h(t.error);if(!e.verificationToken)return h(p("signUp requires a verificationToken; run sendOtp + verifyOtp first (the provider rejects username+password-only signup)"));let s={verification_token:e.verificationToken};return t.data.kind==="phone"?s.phone_number=t.data.username:s.email=t.data.username,e.password&&(s.password=e.password),this.postForSession(b.signUp,s)}async sendOtp(e){let t=B(e,"sendOtp");if(t.error)return h(t.error);let s={};t.data.kind==="phone"?(s.phone_number=t.data.username,s.target="ANY"):(s.email=t.data.username,s.usage="email",e.emailRedirectTo&&(s.email_redirect_to=e.emailRedirectTo));let n=await this.request(b.verification,{method:"POST",body:s});if(n.error)return h(n.error);let i=n.data??{},o=typeof i.verification_id=="string"?i.verification_id:"";return o?S({verificationId:o,isExistingUser:i.is_user===!0}):h(p("provider returned no verification_id"))}async signInWithOtp(e){let t=B(e,"signInWithOtp");if(t.error)return h(t.error);let s=await this.sendOtp(e);if(s.error)return h(s.error);let{verificationId:n,isExistingUser:i}=s.data,o=t.data.kind==="phone"?{phone:t.data.username}:{email:t.data.username};return S({verificationId:n,isExistingUser:i,isUser:i,verify:a(({token:c,password:u})=>this.verifyOtp({verificationId:n,token:c,...o,isExistingUser:i,password:u}),"verify")})}async verifyOtp(e){let t=B(e,"verifyOtp");if(t.error)return h(t.error);if(!e.verificationId||!e.token)return h(p("verifyOtp requires verificationId and token"));let s=await this.request(b.verificationVerify,{method:"POST",body:{verification_id:e.verificationId,verification_code:e.token}});if(s.error)return h(s.error);let n=s.data??{},i=typeof n.verification_token=="string"?n.verification_token:"";if(!i)return h(p("provider returned no verification_token"));if(e.isExistingUser)return this.postForSession(b.signIn,{username:t.data.username,verification_token:i});let o=t.data.kind==="phone"?{phone:t.data.value,password:e.password}:{email:t.data.value,password:e.password};return this.signUp({...o,verificationToken:i})}async signInWithOAuth(e){if(!this.oauthRelayBaseUrl)return h(p("signInWithOAuth requires oauthRelayBaseUrl"));if(e.provider!=="google"&&e.provider!=="wechat"&&e.provider!=="workbuddy")return h(p("\u5F53\u524D SDK \u4E0D\u652F\u6301\u8BE5\u767B\u5F55\u65B9\u5F0F\uFF0C\u8BF7\u68C0\u67E5 SDK \u7248\u672C\u4E0E\u767B\u5F55\u914D\u7F6E\u3002"));let t=e.redirectTo??zt();return t?this.startRelayOAuth(e,t):h(p("signInWithOAuth requires redirectTo outside a browser environment"))}parseCallbackQuery(e){try{let t=/^https?:\/\//i.test(e)?new URL(e).search:e;return S(new URLSearchParams(t))}catch{return h(p("oauth callback URL is invalid"))}}async handleOAuthCallback(e){let t=this.parseCallbackQuery(e??ve());if(t.error||!t.data)return h(t.error??p("oauth callback URL is invalid"));let s=t.data,n=Ee(s);if(n)return h({kind:"unauthenticated",message:n,status:0});let i=s.get("code");if(!i)return S(null);let o=s.get("state")??"";if(!o)return h(p("oauth callback requires state"));let c=s.get("provider_id");if(c!=="custom-oauth")return h(p("oauth callback requires provider_id=custom-oauth"));let u={provider_id:c,provider_code:i,state:o,provider_params:{state:o}};return this.postForSession(b.signInWithProvider,u)}async handleWechatWebCallback(e){let t=this.parseCallbackQuery(e??ve());if(t.error||!t.data)return h(t.error??p("oauth callback URL is invalid"));let s=t.data,n=Ee(s);if(n)return h({kind:"unauthenticated",message:n,status:0});let i=s.get("code");if(!i)return S(null);let o=s.get("state")??"";if(!o)return h(p("oauth callback requires state"));let c=s.get("provider");return c&&c!=="wechat"?h(p("wechat callback requires provider=wechat")):s.get("provider_id")==="custom-oauth"?h(p("wechat callback must not use provider_id=custom-oauth")):this.postForSession(b.loginWechatWeb,{code:i,state:o})}async handleWorkBuddyCallback(e){let t=this.parseCallbackQuery(e??ve());if(t.error||!t.data)return h(t.error??p("oauth callback URL is invalid"));let s=t.data,n=s.get("provider");if(n&&n!=="workbuddy")return S(null);let i=Ee(s);if(i)return this.workBuddyPkce.clearVerifier(),h({kind:"unauthenticated",message:i,status:0});let o=s.get("code");if(!o)return S(null);let c=s.get("state")??"";if(!c)return h(p("workbuddy callback requires state"));if(s.get("provider_id")==="custom-oauth")return h(p("workbuddy callback must not use provider_id=custom-oauth"));if(this.workBuddyPkce.isConsumed(c))return S(null);let u=this.workBuddyExchanges.get(c);if(u)return u;let d=this.workBuddyPkce.readVerifier();if(!d)return h(p("workbuddy callback has no local PKCE verifier; sign in again in this tab"));this.workBuddyPkce.clearVerifier();let l=this.exchangeWorkBuddyCode(o,c,d);this.workBuddyExchanges.set(c,l);try{return await l}finally{this.workBuddyExchanges.delete(c)}}async exchangeWorkBuddyCode(e,t,s){let n=await this.postForSession(b.loginWorkBuddy,{code:e,state:t,code_verifier:s});return n.data&&this.workBuddyPkce.markConsumed(t),n}async resetPasswordForEmail(e){if(!e)return h(p("resetPasswordForEmail requires email"));let t=await this.request(b.verification,{method:"POST",body:{email:e,usage:"PASSWORD_RESET",target:"USER"}});if(t.error)return h(t.error);let s=t.data??{},n=typeof s.verification_id=="string"?s.verification_id:"";return n?S({updateUser:a(async({nonce:i,password:o})=>{let c=await this.request(b.verificationVerify,{method:"POST",body:{verification_id:n,verification_code:i}});if(c.error)return h(c.error);let u=c.data??{},d=typeof u.verification_token=="string"?u.verification_token:"";if(!d)return h(p("provider returned no verification_token"));let l=await this.request(b.resetPassword,{method:"POST",body:{email:e,new_password:o,verification_token:d}});if(l.error)return h(l.error);let f=await this.signInWithPassword({email:e,password:o});return f.error||this.notify("PASSWORD_RECOVERY",f.data),f},"updateUser")}):h(p("provider returned no verification_id"))}async resetPasswordForOld(e){let t=await this.getAccessToken();if(!t)return h({kind:"unauthenticated",message:"no active session",status:0});let s=await this.request(b.sudo,{method:"POST",token:t,body:{password:e.oldPassword}});if(s.error)return h(s.error);let n=s.data??{},i=typeof n.sudo_token=="string"?n.sudo_token:"";if(!i)return h(p("provider returned no sudo_token"));let o=await this.request(b.userPassword,{method:"PATCH",token:t,body:{sudo_token:i,new_password:e.newPassword}});if(o.error)return h(o.error);let c=await this.getSession();return c.data?(this.notify("USER_UPDATED",c.data),S(c.data)):h(c.error??{kind:"unauthenticated",message:"no active session",status:0})}async getSession(){try{return S(await this.sessions.ensure())}catch(e){return h(le(e)?e:K(e))}}async refreshSession(){try{return S(await this.sessions.forceRefresh())}catch(e){return h(le(e)?e:K(e))}}async getUser(){let e=await this.getAccessToken();if(!e)return h({kind:"unauthenticated",message:"no active session",status:0});let t=await this.request(b.userMe,{method:"GET",token:e});return t.error?(Ve(t.error)&&this.sessions.clear(),h(t.error)):S(Fe(t.data))}async signOut(){let e=this.sessions.peek();return e?.accessToken&&await this.request(b.signOut,{method:"POST",body:{},token:e.accessToken}),this.sessions.clear(),S(null)}onAuthStateChange(e){let t=this.nextListenerId++;return this.listeners.set(t,e),ze(e,"INITIAL_SESSION",this.sessions.peek()),()=>{this.listeners.delete(t)}}async startRelayOAuth(e,t){let s;try{s=new URL(t)}catch{return h(p("signInWithOAuth requires an absolute redirectTo URL"))}let n=new URL(`${this.oauthRelayBaseUrl}/authorize`);if(n.searchParams.set("provider",e.provider),n.searchParams.set("callback_url",s.toString()),e.provider==="workbuddy"){let i=await this.createWorkBuddyProof();if(i.error||!i.data)return h(i.error??p("signInWithOAuth could not create PKCE"));n.searchParams.set("code_challenge",i.data),n.searchParams.set("code_challenge_method","S256")}return S({url:n.toString()})}async createWorkBuddyProof(){if(!De())return h(p("workbuddy sign-in requires WebCrypto; it is unavailable in this runtime (an insecure http:// origin disables it \u2014 serve the app over https)"));if(!this.workBuddyPkce.usable())return h(p("workbuddy sign-in requires sessionStorage to keep the PKCE verifier across the redirect; it is unavailable in this runtime"));let e,t;try{e=Ne(),t=await Me(e)}catch(s){return h(p(`workbuddy sign-in could not create a PKCE proof: ${Kt(s)}`))}return this.workBuddyPkce.saveVerifier(e)?S(t):h(p("workbuddy sign-in could not persist the PKCE verifier"))}async exchangeRefreshHandle(e){let t=await this.request(b.token,{method:"POST",body:{grant_type:"refresh_token",refresh_token:e}});if(t.error)throw t.error;return Se(t.data,Date.now())}async postForSession(e,t,s={}){let n=await this.request(e,{method:"POST",body:t,headers:s.headers});if(n.error)return h(n.error);try{return S(this.sessions.commitSignIn(Se(n.data,Date.now())))}catch(i){return h(le(i)?i:K(i))}}async request(e,t){let s={...t.headers};t.body!==void 0&&(s["Content-Type"]="application/json"),t.token&&(s.Authorization=`Bearer ${t.token}`);let n;try{n=await this.fetch(this.baseUrl+e,{method:t.method,headers:s,body:t.body===void 0?void 0:JSON.stringify(t.body)})}catch(o){return h(K(o))}let i=await Vt(n);return n.ok?S(i):h(qe(n.status,i))}notify(e,t){for(let s of this.listeners.values())ze(s,e,t)}};function S(r){return{data:r,error:null}}a(S,"ok");function h(r){return{data:null,error:r}}a(h,"fail");function p(r){return{kind:"invalid-request",message:r,status:0}}a(p,"badRequest");function Kt(r){return Je(r instanceof Error?r.message:String(r),Ge)}a(Kt,"describeError");function le(r){return!!r&&typeof r=="object"&&typeof r.kind=="string"}a(le,"isCloudError");function Ve(r){return r.kind==="unauthenticated"||r.code==="invalid_grant"}a(Ve,"rejectedCredentials");async function Vt(r){let e=await r.text();if(!e)return null;try{return JSON.parse(e)}catch{return{message:e}}}a(Vt,"readBody");function ze(r,e,t){try{r(e,t)}catch{}}a(ze,"safeInvoke");function zt(){let r=globalThis.location;return r?r.origin+r.pathname:""}a(zt,"currentPageUrl");function ve(){return globalThis.location?.search??""}a(ve,"currentPageSearch");var Pe=a(r=>Math.min(1e3*2**r,3e4),"getRetryDelay"),Ye=[520,503],_e=["GET","HEAD","OPTIONS"];var I=class extends Error{static{a(this,"PostgrestError")}details;hint;code;constructor(e){super(e.message),this.name="PostgrestError",this.details=e.details,this.hint=e.hint,this.code=e.code}toJSON(){return{name:this.name,message:this.message,details:this.details,hint:this.hint,code:this.code}}};function Xe(r,e){return new Promise(t=>{if(e?.aborted){t();return}let s=setTimeout(()=>{e?.removeEventListener("abort",n),t()},r);function n(){clearTimeout(s),t()}a(n,"onAbort"),e?.addEventListener("abort",n)})}a(Xe,"sleep");function Gt(r,e,t,s){return!(!s||t>=3||!_e.includes(r)||!Ye.includes(e))}a(Gt,"shouldRetry");var V=class{static{a(this,"PostgrestBuilder")}method;url;headers;schema;body;shouldThrowOnError=!1;signal;fetch;isMaybeSingle;shouldStripNulls;urlLengthLimit;retryEnabled=!0;constructor(e){this.method=e.method,this.url=e.url,this.headers=new Headers(e.headers),this.schema=e.schema,this.body=e.body,this.shouldThrowOnError=e.shouldThrowOnError??!1,this.signal=e.signal,this.isMaybeSingle=e.isMaybeSingle??!1,this.shouldStripNulls=e.shouldStripNulls??!1,this.urlLengthLimit=e.urlLengthLimit??8e3,this.retryEnabled=e.retry??!0,e.fetch?this.fetch=e.fetch:this.fetch=fetch}throwOnError(){return this.shouldThrowOnError=!0,this}stripNulls(){if(this.headers.get("Accept")==="text/csv")throw new Error("stripNulls() cannot be used with csv()");return this.shouldStripNulls=!0,this}setHeader(e,t){return this.headers=new Headers(this.headers),this.headers.set(e,t),this}retry(e){return this.retryEnabled=e,this}then(e,t){if(this.schema===void 0||(["GET","HEAD"].includes(this.method)?this.headers.set("Accept-Profile",this.schema):this.headers.set("Content-Profile",this.schema)),this.method!=="GET"&&this.method!=="HEAD"&&this.headers.set("Content-Type","application/json"),this.shouldStripNulls){let o=this.headers.get("Accept");o==="application/vnd.pgrst.object+json"?this.headers.set("Accept","application/vnd.pgrst.object+json;nulls=stripped"):(!o||o==="application/json")&&this.headers.set("Accept","application/vnd.pgrst.array+json;nulls=stripped")}let s=this.fetch,i=a(async()=>{let o=0;for(;;){let c={};this.headers.forEach((d,l)=>{c[l]=d}),o>0&&(c["X-Retry-Count"]=String(o));let u;try{u=await s(this.url.toString(),{method:this.method,headers:c,body:JSON.stringify(this.body,(d,l)=>typeof l=="bigint"?l.toString():l),signal:this.signal})}catch(d){if(d?.name==="AbortError"||d?.code==="ABORT_ERR"||!_e.includes(this.method))throw d;if(this.retryEnabled&&o<3){let l=Pe(o);o++,await Xe(l,this.signal);continue}throw d}if(Gt(this.method,u.status,o,this.retryEnabled)){let d=u.headers?.get("Retry-After")??null,l=d!==null?Math.max(0,parseInt(d,10)||0)*1e3:Pe(o);await u.text(),o++,await Xe(l,this.signal);continue}return await this.processResponse(u)}},"executeWithRetry")();return this.shouldThrowOnError||(i=i.catch(o=>{let c="",u="",d="",l=o?.cause;if(l){let g=l?.message??"",y=l?.code??"";c=`${o?.name??"FetchError"}: ${o?.message}`,c+=`
+
+Caused by: ${l?.name??"Error"}: ${g}`,y&&(c+=` (${y})`),l?.stack&&(c+=`
+${l.stack}`)}else c=o?.stack??"";let f=this.url.toString().length;return o?.name==="AbortError"||o?.code==="ABORT_ERR"?(d="",u="Request was aborted (timeout or manual cancellation)",f>this.urlLengthLimit&&(u+=`. Note: Your request URL is ${f} characters, which may exceed server limits. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [many IDs])), consider using an RPC function to pass values server-side.`)):(l?.name==="HeadersOverflowError"||l?.code==="UND_ERR_HEADERS_OVERFLOW")&&(d="",u="HTTP headers exceeded server limits (typically 16KB)",f>this.urlLengthLimit&&(u+=`. Your request URL is ${f} characters. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [200+ IDs])), consider using an RPC function instead.`)),{success:!1,error:{message:`${o?.name??"FetchError"}: ${o?.message}`,details:c,hint:u,code:d},data:null,count:null,status:0,statusText:""}})),i.then(e,t)}async processResponse(e){let t=null,s=null,n=null,i=e.status,o=e.statusText;if(e.ok){if(this.method!=="HEAD"){let d=await e.text();if(d!=="")if(this.headers.get("Accept")==="text/csv")s=d;else if(this.headers.get("Accept")&&this.headers.get("Accept")?.includes("application/vnd.pgrst.plan+text"))s=d;else try{s=JSON.parse(d)}catch{if(t={message:d},s=null,this.shouldThrowOnError)throw new I({message:d,details:"",hint:"",code:""})}}let c=this.headers.get("Prefer")?.match(/count=(exact|planned|estimated)/),u=e.headers.get("content-range")?.split("/");if(c&&u&&u.length>1&&(n=parseInt(u[1])),this.isMaybeSingle&&Array.isArray(s))if(s.length>1){if(t={code:"PGRST116",details:`Results contain ${s.length} rows, application/vnd.pgrst.object+json requires 1 row`,hint:null,message:"JSON object requested, multiple (or no) rows returned"},s=null,n=null,i=406,o="Not Acceptable",this.shouldThrowOnError)throw new I({...t,hint:t.hint??""})}else s.length===1?s=s[0]:s=null}else{let c=await e.text();try{t=JSON.parse(c),Array.isArray(t)&&e.status===404&&(s=[],t=null,i=200,o="OK")}catch{e.status===404&&c===""?(i=204,o="No Content"):t={message:c}}if(t&&this.shouldThrowOnError)throw new I(t)}return{success:t===null,error:t,data:s,count:n,status:i,statusText:o}}returns(){return this}overrideTypes(){return this}};var z=class extends V{static{a(this,"PostgrestTransformBuilder")}throwOnError(){return super.throwOnError()}select(e){let t=!1,s=(e??"*").split("").map(n=>/\s/.test(n)&&!t?"":(n==='"'&&(t=!t),n)).join("");return this.url.searchParams.set("select",s),this.headers.append("Prefer","return=representation"),this}order(e,{ascending:t=!0,nullsFirst:s,foreignTable:n,referencedTable:i=n}={}){let o=i?`${i}.order`:"order",c=this.url.searchParams.get(o);return this.url.searchParams.set(o,`${c?`${c},`:""}${e}.${t?"asc":"desc"}${s===void 0?"":s?".nullsfirst":".nullslast"}`),this}limit(e,{foreignTable:t,referencedTable:s=t}={}){let n=typeof s>"u"?"limit":`${s}.limit`;return this.url.searchParams.set(n,`${e}`),this}range(e,t,{foreignTable:s,referencedTable:n=s}={}){let i=typeof n>"u"?"offset":`${n}.offset`,o=typeof n>"u"?"limit":`${n}.limit`;return this.url.searchParams.set(i,`${e}`),this.url.searchParams.set(o,`${t-e+1}`),this}abortSignal(e){return this.signal=e,this}single(){return this.headers.set("Accept","application/vnd.pgrst.object+json"),this}maybeSingle(){return this.isMaybeSingle=!0,this}csv(){return this.headers.set("Accept","text/csv"),this}geojson(){return this.headers.set("Accept","application/geo+json"),this}explain({analyze:e=!1,verbose:t=!1,settings:s=!1,buffers:n=!1,wal:i=!1,format:o="text"}={}){let c=[e?"analyze":null,t?"verbose":null,s?"settings":null,n?"buffers":null,i?"wal":null].filter(Boolean).join("|"),u=this.headers.get("Accept")??"application/json";return this.headers.set("Accept",`application/vnd.pgrst.plan+${o}; for="${u}"; options=${c};`),o==="json"?this:this}rollback(){return this.headers.append("Prefer","tx=rollback"),this}returns(){return this}maxAffected(e){return this.headers.append("Prefer","handling=strict"),this.headers.append("Prefer",`max-affected=${e}`),this}};var Ze=new RegExp("[,()]"),A=class extends z{static{a(this,"PostgrestFilterBuilder")}throwOnError(){return super.throwOnError()}eq(e,t){return this.url.searchParams.append(e,`eq.${t}`),this}neq(e,t){return this.url.searchParams.append(e,`neq.${t}`),this}gt(e,t){return this.url.searchParams.append(e,`gt.${t}`),this}gte(e,t){return this.url.searchParams.append(e,`gte.${t}`),this}lt(e,t){return this.url.searchParams.append(e,`lt.${t}`),this}lte(e,t){return this.url.searchParams.append(e,`lte.${t}`),this}like(e,t){return this.url.searchParams.append(e,`like.${t}`),this}likeAllOf(e,t){return this.url.searchParams.append(e,`like(all).{${t.join(",")}}`),this}likeAnyOf(e,t){return this.url.searchParams.append(e,`like(any).{${t.join(",")}}`),this}ilike(e,t){return this.url.searchParams.append(e,`ilike.${t}`),this}ilikeAllOf(e,t){return this.url.searchParams.append(e,`ilike(all).{${t.join(",")}}`),this}ilikeAnyOf(e,t){return this.url.searchParams.append(e,`ilike(any).{${t.join(",")}}`),this}regexMatch(e,t){return this.url.searchParams.append(e,`match.${t}`),this}regexIMatch(e,t){return this.url.searchParams.append(e,`imatch.${t}`),this}is(e,t){return this.url.searchParams.append(e,`is.${t}`),this}isDistinct(e,t){return this.url.searchParams.append(e,`isdistinct.${t}`),this}in(e,t){let s=Array.from(new Set(t)).map(n=>typeof n=="string"&&Ze.test(n)?`"${n}"`:`${n}`).join(",");return this.url.searchParams.append(e,`in.(${s})`),this}notIn(e,t){let s=Array.from(new Set(t)).map(n=>typeof n=="string"&&Ze.test(n)?`"${n}"`:`${n}`).join(",");return this.url.searchParams.append(e,`not.in.(${s})`),this}contains(e,t){return typeof t=="string"?this.url.searchParams.append(e,`cs.${t}`):Array.isArray(t)?this.url.searchParams.append(e,`cs.{${t.join(",")}}`):this.url.searchParams.append(e,`cs.${JSON.stringify(t)}`),this}containedBy(e,t){return typeof t=="string"?this.url.searchParams.append(e,`cd.${t}`):Array.isArray(t)?this.url.searchParams.append(e,`cd.{${t.join(",")}}`):this.url.searchParams.append(e,`cd.${JSON.stringify(t)}`),this}rangeGt(e,t){return this.url.searchParams.append(e,`sr.${t}`),this}rangeGte(e,t){return this.url.searchParams.append(e,`nxl.${t}`),this}rangeLt(e,t){return this.url.searchParams.append(e,`sl.${t}`),this}rangeLte(e,t){return this.url.searchParams.append(e,`nxr.${t}`),this}rangeAdjacent(e,t){return this.url.searchParams.append(e,`adj.${t}`),this}overlaps(e,t){return typeof t=="string"?this.url.searchParams.append(e,`ov.${t}`):this.url.searchParams.append(e,`ov.{${t.join(",")}}`),this}textSearch(e,t,{config:s,type:n}={}){let i="";n==="plain"?i="pl":n==="phrase"?i="ph":n==="websearch"&&(i="w");let o=s===void 0?"":`(${s})`;return this.url.searchParams.append(e,`${i}fts${o}.${t}`),this}match(e){return Object.entries(e).filter(([t,s])=>s!==void 0).forEach(([t,s])=>{this.url.searchParams.append(t,`eq.${s}`)}),this}not(e,t,s){return this.url.searchParams.append(e,`not.${t}.${s}`),this}or(e,{foreignTable:t,referencedTable:s=t}={}){let n=s?`${s}.or`:"or";return this.url.searchParams.append(n,`(${e})`),this}filter(e,t,s){return this.url.searchParams.append(e,`${t}.${s}`),this}};var G=class{static{a(this,"PostgrestQueryBuilder")}url;headers;schema;signal;fetch;urlLengthLimit;retry;constructor(e,{headers:t={},schema:s,fetch:n,urlLengthLimit:i=8e3,retry:o}){this.url=e,this.headers=new Headers(t),this.schema=s,this.fetch=n,this.urlLengthLimit=i,this.retry=o}cloneRequestState(){return{url:new URL(this.url.toString()),headers:new Headers(this.headers)}}select(e,t){let{head:s=!1,count:n}=t??{},i=s?"HEAD":"GET",o=!1,c=(e??"*").split("").map(l=>/\s/.test(l)&&!o?"":(l==='"'&&(o=!o),l)).join(""),{url:u,headers:d}=this.cloneRequestState();return u.searchParams.set("select",c),n&&d.append("Prefer",`count=${n}`),new A({method:i,url:u,headers:d,schema:this.schema,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}insert(e,{count:t,defaultToNull:s=!0}={}){let n="POST",{url:i,headers:o}=this.cloneRequestState();if(t&&o.append("Prefer",`count=${t}`),s||o.append("Prefer","missing=default"),Array.isArray(e)){let c=e.reduce((u,d)=>u.concat(Object.keys(d)),[]);if(c.length>0){let u=[...new Set(c)].map(d=>`"${d}"`);i.searchParams.set("columns",u.join(","))}}return new A({method:n,url:i,headers:o,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}upsert(e,{onConflict:t,ignoreDuplicates:s=!1,count:n,defaultToNull:i=!0}={}){let o="POST",{url:c,headers:u}=this.cloneRequestState();if(u.append("Prefer",`resolution=${s?"ignore":"merge"}-duplicates`),t!==void 0&&c.searchParams.set("on_conflict",t),n&&u.append("Prefer",`count=${n}`),i||u.append("Prefer","missing=default"),Array.isArray(e)){let d=e.reduce((l,f)=>l.concat(Object.keys(f)),[]);if(d.length>0){let l=[...new Set(d)].map(f=>`"${f}"`);c.searchParams.set("columns",l.join(","))}}return new A({method:o,url:c,headers:u,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}update(e,{count:t}={}){let s="PATCH",{url:n,headers:i}=this.cloneRequestState();return t&&i.append("Prefer",`count=${t}`),new A({method:s,url:n,headers:i,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}delete({count:e}={}){let t="DELETE",{url:s,headers:n}=this.cloneRequestState();return e&&n.append("Prefer",`count=${e}`),new A({method:t,url:s,headers:n,schema:this.schema,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}};var N=class r{static{a(this,"PostgrestClient")}url;headers;schemaName;fetch;urlLengthLimit;retry;constructor(e,{headers:t={},schema:s,fetch:n,timeout:i,urlLengthLimit:o=8e3,retry:c}={}){this.url=e,this.headers=new Headers(t),this.schemaName=s,this.urlLengthLimit=o;let u=n??globalThis.fetch;i!==void 0&&i>0?this.fetch=(d,l)=>{let f=new AbortController,g=setTimeout(()=>f.abort(),i),y=l?.signal;if(y){if(y.aborted)return clearTimeout(g),u(d,l);let ne=a(()=>{clearTimeout(g),f.abort()},"abortHandler");return y.addEventListener("abort",ne,{once:!0}),u(d,{...l,signal:f.signal}).finally(()=>{clearTimeout(g),y.removeEventListener("abort",ne)})}return u(d,{...l,signal:f.signal}).finally(()=>clearTimeout(g))}:this.fetch=u,this.retry=c}from(e){if(!e||typeof e!="string"||e.trim()==="")throw new Error("Invalid relation name: relation must be a non-empty string.");let t=new URL(`${this.url}/${e}`);return new G(t,{headers:new Headers(this.headers),schema:this.schemaName,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}schema(e){return new r(this.url,{headers:this.headers,schema:e,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}rpc(e,t={},{head:s=!1,get:n=!1,count:i}={}){let o,c=new URL(`${this.url}/rpc/${e}`),u,d=a(g=>g!==null&&typeof g=="object"&&(!Array.isArray(g)||g.some(d)),"_isObject"),l=s&&Object.values(t).some(d);l?(o="POST",u=t):s||n?(o=s?"HEAD":"GET",Object.entries(t).filter(([g,y])=>y!==void 0).map(([g,y])=>[g,Array.isArray(y)?`{${y.join(",")}}`:`${y}`]).forEach(([g,y])=>{c.searchParams.append(g,y)})):(o="POST",u=t);let f=new Headers(this.headers);return l?f.set("Prefer",i?`count=${i},return=minimal`:"return=minimal"):i&&f.set("Prefer",`count=${i}`),new A({method:o,url:c,headers:f,schema:this.schemaName,body:u,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}};var J=class{static{a(this,"WorkBuddyDatabaseModule")}client;constructor(e,t){this.client=new N(`${e.endpoint}${R.database}`,{fetch:t}),this.from=this.client.from.bind(this.client),this.rpc=this.client.rpc.bind(this.client)}from;rpc;get url(){return this.client.url}};function et(r,e){return new J(r,e)}a(et,"createDatabaseModule");var x=class extends Error{static{a(this,"CloudOpenAIError")}error;status;requestId;retryAfterMs;constructor(e,t={}){let s=typeof e=="string"?{message:e,type:"server_error",param:null,code:null}:e;super(s.message),this.name="CloudOpenAIError",this.error=s,this.status=t.status,this.requestId=t.requestId,this.retryAfterMs=t.retryAfterMs,t.cause!==void 0&&("cause"in this||Object.defineProperty(this,"cause",{value:t.cause,writable:!1,enumerable:!1,configurable:!1}))}};function tt(r){if(!r)return;let e=r.trim(),t=Number(e);if(!isNaN(t)&&t>=0&&Number.isInteger(t))return t*1e3;let s=Date.parse(e);if(!isNaN(s)){let n=s-Date.now();return n>0?n:0}}a(tt,"parseRetryAfter");function m(...r){return r.find(e=>typeof e=="string"&&e.length>0)}a(m,"stringField");function k(...r){return r.find(e=>typeof e=="number"&&Number.isFinite(e))}a(k,"numberField");function E(...r){return r.find(e=>typeof e=="boolean")}a(E,"booleanField");function rt(...r){for(let e of r){if(typeof e=="number"&&Number.isFinite(e))return e;if(e!==null&&typeof e=="object"&&!Array.isArray(e))return Jt(e)}}a(rt,"contextWindowField");function Jt(r){let e={};for(let[t,s]of Object.entries(r)){if(t==="supportedLengths"){Array.isArray(s)&&(e.supportedLengths=s.filter(n=>typeof n=="number"&&Number.isFinite(n)));continue}if(t==="defaultLength"){typeof s=="number"&&Number.isFinite(s)&&(e.defaultLength=s);continue}Object.defineProperty(e,t,{value:s,writable:!0,enumerable:!0,configurable:!0})}return e}a(Jt,"normalizeContextWindowObject");function st(r){if(!r||typeof r!="object")return;let e=r,t=Array.isArray(e.input)?e.input.filter(n=>typeof n=="string"):void 0,s=Array.isArray(e.output)?e.output.filter(n=>typeof n=="string"):void 0;return t?.length||s?.length?{...t?.length?{input:t}:{},...s?.length?{output:s}:{}}:void 0}a(st,"modalitiesField");function nt(r){if(!r||typeof r!="object")return;let t=Object.entries(r).filter(([,s])=>typeof s=="boolean");return t.length?Object.fromEntries(t):void 0}a(nt,"capabilitiesField");function it(r){if(!r||typeof r!="object")return;let e=r,t={...m(e.currency)?{currency:e.currency}:{},...k(e.inputPerMillionTokens)!==void 0?{inputPerMillionTokens:e.inputPerMillionTokens}:{},...k(e.outputPerMillionTokens)!==void 0?{outputPerMillionTokens:e.outputPerMillionTokens}:{},...m(e.displayText)?{displayText:e.displayText}:{}};return Object.keys(t).length?t:void 0}a(it,"pricingField");function ot(r){if(!r||typeof r!="object")return;let e=r,t={},s=m(e.effort);s!==void 0&&(t.effort=s);let n=m(e.defaultEffort);n!==void 0&&(t.defaultEffort=n),Array.isArray(e.supportedEfforts)&&(t.supportedEfforts=e.supportedEfforts.filter(c=>typeof c=="string"));let i=m(e.summary);i!==void 0&&(i==="auto"||i==="concise"||i==="detailed")&&(t.summary=i);let o=E(e.canDisableThinking);return o!==void 0&&(t.canDisableThinking=o),Object.keys(t).length>0?t:void 0}a(ot,"reasoningField");function Yt(r){let e=m(r.id,r.ID);if(!e)return null;let t=E(r.enabled,r.Enabled),s=E(r.disabled,r.Disabled),n,i;return t!==void 0?(n=t,s!==void 0&&(i=s)):s!==void 0?(i=s,n=!s):n=!0,{id:e,name:m(r.name,r.Name)??e,...m(r.provider,r.Provider)?{provider:m(r.provider,r.Provider)}:{},...m(r.vendor,r.Vendor)?{vendor:m(r.vendor,r.Vendor)}:{},...m(r.family,r.Family)?{family:m(r.family,r.Family)}:{},...m(r.version,r.Version)?{version:m(r.version,r.Version)}:{},...m(r.description,r.Description)?{description:m(r.description,r.Description)}:{},...m(r.descriptionZh,r.DescriptionZh)?{descriptionZh:m(r.descriptionZh,r.DescriptionZh)}:{},...m(r.descriptionEn,r.DescriptionEn)?{descriptionEn:m(r.descriptionEn,r.DescriptionEn)}:{},...m(r.iconUrl,r.IconURL)?{iconUrl:m(r.iconUrl,r.IconURL)}:{},...rt(r.contextWindow,r.ContextWindow)!==void 0?{contextWindow:rt(r.contextWindow,r.ContextWindow)}:{},...k(r.maxInputTokens,r.MaxInputTokens)!==void 0?{maxInputTokens:k(r.maxInputTokens,r.MaxInputTokens)}:{},...k(r.maxOutputTokens,r.MaxOutputTokens)!==void 0?{maxOutputTokens:k(r.maxOutputTokens,r.MaxOutputTokens)}:{},...st(r.modalities??r.Modalities)?{modalities:st(r.modalities??r.Modalities)}:{},...nt(r.capabilities??r.Capabilities)?{capabilities:nt(r.capabilities??r.Capabilities)}:{},enabled:n,...i!==void 0?{disabled:i}:{},...E(r.isDefault,r.IsDefault)!==void 0?{isDefault:E(r.isDefault,r.IsDefault)}:{},...k(r.sortOrder,r.SortOrder)!==void 0?{sortOrder:k(r.sortOrder,r.SortOrder)}:{},...it(r.pricing??r.Pricing)?{pricing:it(r.pricing??r.Pricing)}:{},...m(r.credits,r.Credits)?{credits:m(r.credits,r.Credits)}:{},...k(r.maxAllowedSize,r.MaxAllowedSize)!==void 0?{maxAllowedSize:k(r.maxAllowedSize,r.MaxAllowedSize)}:{},...E(r.disabledMultimodal,r.DisabledMultimodal)!==void 0?{disabledMultimodal:E(r.disabledMultimodal,r.DisabledMultimodal)}:{},...E(r.supportsImages,r.SupportsImages)!==void 0?{supportsImages:E(r.supportsImages,r.SupportsImages)}:{},...E(r.supportsToolCall,r.SupportsToolCall)!==void 0?{supportsToolCall:E(r.supportsToolCall,r.SupportsToolCall)}:{},...E(r.supportsReasoning,r.SupportsReasoning)!==void 0?{supportsReasoning:E(r.supportsReasoning,r.SupportsReasoning)}:{},...E(r.onlyReasoning,r.OnlyReasoning)!==void 0?{onlyReasoning:E(r.onlyReasoning,r.OnlyReasoning)}:{},...ot(r.reasoning??r.Reasoning)?{reasoning:ot(r.reasoning??r.Reasoning)}:{},...k(r.temperature,r.Temperature)!==void 0?{temperature:k(r.temperature,r.Temperature)}:{},...k(r.top_k,r.Top_K)!==void 0?{top_k:k(r.top_k,r.Top_K)}:{},...k(r.top_p,r.Top_P)!==void 0?{top_p:k(r.top_p,r.Top_P)}:{},...k(r.repetition_penalty,r.Repetition_Penalty)!==void 0?{repetition_penalty:k(r.repetition_penalty,r.Repetition_Penalty)}:{}}}a(Yt,"normalizeModel");function Te(r){return r.name||r.id}a(Te,"getModelDisplayName");function Oe(r,e){return r.capabilities?.[e]}a(Oe,"getModelCapability");var he=class{static{a(this,"ModelsAPI")}baseUrl;fetch;constructor(e,t){this.baseUrl=e,this.fetch=t}async list(e){let t;try{t=await this.fetch(`${this.baseUrl}/models`,{method:"GET",headers:{Accept:"application/json"},signal:e})}catch(c){throw c instanceof Error&&c.name==="AbortError"?c:new x({message:`Network error: ${c?.message??"unknown"}`,type:"server_error",param:null,code:"gateway_network_error"},{cause:c})}if(!t.ok)throw await Ae(t);let s=await t.text(),n;try{n=JSON.parse(s)}catch{throw new x({message:"Failed to parse models response: invalid JSON",type:"server_error",param:null,code:"gateway_invalid_response"})}let i=Array.isArray(n)?n:Array.isArray(n?.data)?n.data:[],o=[];for(let c of i){let u=Yt(c);u&&o.push(u)}return o}};async function Ae(r){let e=await r.text().catch(()=>""),t;try{let i=JSON.parse(e);if(i&&typeof i=="object"&&i.error){let o=i.error;t={message:typeof o.message=="string"?o.message:`HTTP ${r.status}`,type:typeof o.type=="string"?o.type:"server_error",param:o.param===void 0?null:o.param,code:o.code===void 0?null:o.code}}else t={message:typeof i=="string"?i:`HTTP ${r.status}`,type:"server_error",param:null,code:null}}catch{t={message:e||`HTTP ${r.status}`,type:"server_error",param:null,code:null}}let s=r.headers.get("x-request-id")??void 0,n=tt(r.headers.get("retry-after"));return new x(t,{status:r.status,requestId:s,retryAfterMs:n})}a(Ae,"httpError");var fe=class{static{a(this,"Utf8Decoder")}codePoint=0;bytesNeeded=0;bytesSeen=0;lowerBoundary=128;upperBoundary=191;bomSeen=!1;streaming=!1;resetSequence(){this.codePoint=0,this.bytesNeeded=0,this.bytesSeen=0,this.lowerBoundary=128,this.upperBoundary=191}decode(e=new Uint8Array,t={}){this.streaming||(this.resetSequence(),this.bomSeen=!1),this.streaming=t.stream===!0;let s="",n=a(i=>{!this.bomSeen&&(this.bomSeen=!0,i===65279)||(s+=String.fromCodePoint(i))},"emit");for(let i=0;i<e.length;i++){let o=e[i];if(this.bytesNeeded===0){o<=127?n(o):o>=194&&o<=223?(this.bytesNeeded=1,this.codePoint=o&31):o>=224&&o<=239?(this.bytesNeeded=2,this.codePoint=o&15,o===224&&(this.lowerBoundary=160),o===237&&(this.upperBoundary=159)):o>=240&&o<=244?(this.bytesNeeded=3,this.codePoint=o&7,o===240&&(this.lowerBoundary=144),o===244&&(this.upperBoundary=143)):n(65533);continue}if(o<this.lowerBoundary||o>this.upperBoundary){this.resetSequence(),n(65533),i--;continue}this.lowerBoundary=128,this.upperBoundary=191,this.codePoint=this.codePoint<<6|o&63,this.bytesSeen++,this.bytesSeen===this.bytesNeeded&&(n(this.codePoint),this.resetSequence())}return!this.streaming&&this.bytesNeeded>0&&(n(65533),this.resetSequence()),s}};var Xt=class{static{a(this,"SSEDecoder")}event=null;dataParts=[];decode(e){let t=e;if(t.endsWith("\r")&&(t=t.slice(0,-1)),t===""){if(this.event===null&&this.dataParts.length===0)return null;let o={event:this.event,data:this.dataParts.join(`
+`)};return this.event=null,this.dataParts=[],o}if(t.startsWith(":"))return null;let s=t.indexOf(":"),n,i;if(s===-1)n=t,i="";else{n=t.slice(0,s);let o=t.slice(s+1);o.startsWith(" ")&&(o=o.slice(1)),i=o}return n==="event"?this.event=i:n==="data"&&this.dataParts.push(i),null}flush(){if(this.event===null&&this.dataParts.length===0)return null;let e={event:this.event,data:this.dataParts.join(`
+`)};return this.event=null,this.dataParts=[],e}},Qt=class{static{a(this,"LineDecoder")}buffer=new Uint8Array;decoder;constructor(){this.decoder=typeof TextDecoder>"u"?new fe:new TextDecoder("utf-8")}decode(e){let t=new Uint8Array(this.buffer.length+e.length);t.set(this.buffer),t.set(e,this.buffer.length),this.buffer=t;let s=[],n=0;for(let i=0;i<this.buffer.length;i++)if(this.buffer[i]===10||this.buffer[i]===13){let o=this.buffer.subarray(n,i),c=this.decoder.decode(o,{stream:!0});s.push(c),this.buffer[i]===13&&i+1<this.buffer.length&&this.buffer[i+1]===10&&i++,n=i+1}return n>0&&(this.buffer=this.buffer.slice(n)),s}flush(){if(this.buffer.length===0){let t=this.decoder.decode();return t?[t]:[]}let e=this.decoder.decode(this.buffer,{stream:!1});return this.buffer=new Uint8Array,e?[e]:[]}},at="[DONE]";async function*ct(r,e){let t=new Xt,s=new Qt,n=r.getReader(),i=!1,o=a(()=>{i=!0,n.cancel().catch(()=>{})},"onAbort");if(e){if(e.aborted)return;e.addEventListener("abort",o,{once:!0})}try{for(;;){if(i)return;let u;try{u=await n.read()}catch(f){if(i||f instanceof Error&&f.name==="AbortError")return;throw f}let{done:d,value:l}=u;if(d)break;for(let f of s.decode(l)){let g=t.decode(f);g&&(yield g)}}for(let u of s.flush()){let d=t.decode(u);d&&(yield d)}let c=t.flush();c&&(yield c)}finally{e&&e.removeEventListener("abort",o);try{n.releaseLock()}catch{}}}a(ct,"iterSSEEvents");function Zt(r,e){let t=e?{requestId:e}:{};try{let s=JSON.parse(r);if(s&&typeof s=="object"){let n=s.error??s;if(n&&typeof n=="object")return new x({message:typeof n.message=="string"?n.message:"Stream error",type:typeof n.type=="string"?n.type:"server_error",param:n.param===void 0?null:n.param,code:n.code===void 0?null:n.code},t)}}catch{}return new x({message:r||"Stream error",type:"server_error",param:null,code:null},t)}a(Zt,"extractSSEError");var pe=class{static{a(this,"ChatCompletionsAPI")}baseUrl;fetch;constructor(e,t){this.baseUrl=e,this.fetch=t}create(e){if(e.stream!==!0)throw new x({message:"stream must be true; non-streaming chat completions are not supported",type:"invalid_request_error",param:"stream",code:"request_stream_required"});return this.createStreaming(e)}async*createStreaming(e){let{signal:t,conversationId:s,...n}=e;n.stream=!0;let i;try{i=await this.fetch(`${this.baseUrl}/chat/completions`,{method:"POST",headers:{Accept:"text/event-stream","Content-Type":"application/json",...s!==void 0?{"X-Conversation-ID":s}:{}},body:JSON.stringify(n),signal:t})}catch(d){if(d instanceof Error&&d.name==="AbortError")return;throw new x({message:`Network error: ${d?.message??"unknown"}`,type:"server_error",param:null,code:"gateway_network_error"},{cause:d})}if(!i.ok)throw await Ae(i);if(!i.body)throw new x({message:"Response body is empty \u2014 streaming not supported",type:"server_error",param:null,code:"gateway_invalid_response"},{requestId:i.headers.get("x-request-id")??void 0});let o=i.headers.get("x-request-id")??void 0,c=!1,u=!1;try{for await(let d of ct(i.body,t)){if(d.event==="error")throw u=!0,Zt(d.data,o);if(d.event===null||d.event===""){if(d.data===at){c=!0;return}if(!d.data)continue;let l;try{l=JSON.parse(d.data)}catch{throw u=!0,new x({message:`Failed to parse SSE data: ${d.data}`,type:"server_error",param:null,code:"gateway_invalid_response"},{requestId:o})}if(l&&typeof l=="object"&&"error"in l){u=!0;let f=l.error;throw new x({message:typeof f?.message=="string"?f.message:"Stream error",type:typeof f?.type=="string"?f.type:"server_error",param:f?.param===void 0?null:f.param,code:f?.code===void 0?null:f.code},{requestId:o})}yield l}}}catch(d){if(d instanceof Error&&d.name==="AbortError")return;throw u=!0,d}if(!c&&!u&&!t?.aborted)throw new x({message:"\u6D41\u5F0F\u54CD\u5E94\u4E2D\u65AD\u3002",type:"server_error",param:null,code:"gateway_stream_interrupted"},{requestId:o})}};var M=class{static{a(this,"LlmModule")}fetch;baseUrl;models;chat;constructor(e,t){this.fetch=t,this.baseUrl=`${e.endpoint}${R.llm}`,this.models=new he(this.baseUrl,this.fetch),this.chat={completions:new pe(this.baseUrl,this.fetch)}}};var F=class extends Error{static{a(this,"StorageError")}__isStorageError=!0;namespace;status;statusCode;constructor(e,t="storage",s,n){super(e),this.namespace=t,this.name=t==="vectors"?"StorageVectorsError":"StorageError",this.status=s,this.statusCode=n}toJSON(){return{name:this.name,message:this.message,status:this.status,statusCode:this.statusCode}}};function U(r){return typeof r=="object"&&r!==null&&"__isStorageError"in r}a(U,"isStorageError");var C=class extends F{static{a(this,"StorageApiError")}status;statusCode;code;constructor(e,t,s,n="storage",i){super(e,n,t,s),this.name=n==="vectors"?"StorageVectorsApiError":"StorageApiError",this.status=t,this.statusCode=s,this.code=i}toJSON(){return{...super.toJSON(),code:this.code}}},q=class extends F{static{a(this,"StorageUnknownError")}originalError;constructor(e,t,s="storage"){super(e,s),this.name=s==="vectors"?"StorageVectorsUnknownError":"StorageUnknownError",this.originalError=t}};function L(r,e,t){let s={...r},n=e.toLowerCase();for(let i of Object.keys(s))i.toLowerCase()===n&&delete s[i];return s[n]=t,s}a(L,"setHeader");function ut(r){let e={};for(let[t,s]of Object.entries(r))e[t.toLowerCase()]=s;return e}a(ut,"normalizeHeaders");var dt=a(r=>r?(...e)=>r(...e):(...e)=>fetch(...e),"resolveFetch");var lt=a(r=>{if(typeof r!="object"||r===null)return!1;let e=Object.getPrototypeOf(r);return(e===null||e===Object.prototype||Object.getPrototypeOf(e)===null)&&!(Symbol.toStringTag in r)&&!(Symbol.iterator in r)},"isPlainObject"),me=a(r=>{if(Array.isArray(r))return r.map(t=>me(t));if(typeof r=="function"||r!==Object(r))return r;let e={};return Object.entries(r).forEach(([t,s])=>{let n=t.replace(/([-_][a-z])/gi,i=>i.toUpperCase().replace(/[-_]/g,""));e[n]=me(s)}),e},"recursiveToCamel");var ht=a(r=>r.split("/").map(encodeURIComponent).join("/"),"encodeStoragePath");var ft=a(r=>{if(typeof r=="object"&&r!==null){let e=r;if(typeof e.msg=="string")return e.msg;if(typeof e.message=="string")return e.message;if(typeof e.error_description=="string")return e.error_description;if(typeof e.error=="string")return e.error;if(typeof e.error=="object"&&e.error!==null){let t=e.error;if(typeof t.message=="string")return t.message}}return JSON.stringify(r)},"_getErrorMessage"),er=a(async(r,e,t,s)=>{if(r!==null&&typeof r=="object"&&"json"in r&&typeof r.json=="function"){let i=r,o=parseInt(String(i.status),10);Number.isFinite(o)||(o=500),i.json().then(c=>{let u=c?.statusCode||c?.code||o+"";e(new C(ft(c),o,u,s,c?.code))}).catch(()=>{let c=o+"",u=i.statusText||`HTTP ${o} error`;e(new C(u,o,c,s))})}else e(new q(ft(r),r,s))},"handleError"),tr=a((r,e,t,s)=>{let n={method:r,headers:e?.headers||{}};if(r==="GET"||r==="HEAD"||!s)return{...n,...t};if(lt(s)){let i=e?.headers||{},o;for(let[c,u]of Object.entries(i))c.toLowerCase()==="content-type"&&(o=u);n.headers=L(i,"Content-Type",o??"application/json"),n.body=JSON.stringify(s)}else n.body=s;return e?.duplex&&(n.duplex=e.duplex),{...n,...t}},"_getRequestParams");async function Y(r,e,t,s,n,i,o){return new Promise((c,u)=>{r(t,tr(e,s,n,i)).then(d=>{if(!d.ok)throw d;if(s?.noResolveJson)return d;if(o==="vectors"){let l=d.headers.get("content-type");if(d.headers.get("content-length")==="0"||d.status===204)return{};if(!l||!l.includes("application/json"))return{}}return d.json()}).then(d=>c(d)).catch(d=>er(d,u,s,o))})}a(Y,"_handleRequest");function pt(r="storage"){return{get:a(async(e,t,s,n)=>Y(e,"GET",t,s,n,void 0,r),"get"),post:a(async(e,t,s,n,i)=>Y(e,"POST",t,n,i,s,r),"post"),put:a(async(e,t,s,n,i)=>Y(e,"PUT",t,n,i,s,r),"put"),head:a(async(e,t,s,n)=>Y(e,"HEAD",t,{...s,noResolveJson:!0},n,void 0,r),"head"),remove:a(async(e,t,s,n,i)=>Y(e,"DELETE",t,n,i,s,r),"remove")}}a(pt,"createFetchApi");var rr=pt("storage"),{get:Re,post:$,put:$e,head:mt,remove:Ue}=rr,Ms=pt("vectors");var X=class{static{a(this,"BaseApiClient")}url;headers;fetch;shouldThrowOnError=!1;namespace;constructor(e,t={},s,n="storage"){this.url=e,this.headers=ut(t),this.fetch=dt(s),this.namespace=n}throwOnError(){return this.shouldThrowOnError=!0,this}setHeader(e,t){return this.headers=L(this.headers,e,t),this}async handleOperation(e){try{return{data:await e(),error:null}}catch(t){if(this.shouldThrowOnError)throw t;if(U(t))return{data:null,error:t};throw t}}};var Q=class{static{a(this,"StreamDownloadBuilder")}downloadFn;shouldThrowOnError;[Symbol.toStringTag]="StreamDownloadBuilder";promise=null;constructor(e,t){this.downloadFn=e,this.shouldThrowOnError=t}then(e,t){return this.getPromise().then(e,t)}catch(e){return this.getPromise().catch(e)}finally(e){return this.getPromise().finally(e)}getPromise(){return this.promise||(this.promise=this.execute()),this.promise}async execute(){try{return{data:(await this.downloadFn()).body,error:null}}catch(e){if(this.shouldThrowOnError)throw e;if(U(e))return{data:null,error:e};throw e}}};var Z=class{static{a(this,"BlobDownloadBuilder")}downloadFn;shouldThrowOnError;[Symbol.toStringTag]="BlobDownloadBuilder";promise=null;constructor(e,t){this.downloadFn=e,this.shouldThrowOnError=t}asStream(){return new Q(this.downloadFn,this.shouldThrowOnError)}then(e,t){return this.getPromise().then(e,t)}catch(e){return this.getPromise().catch(e)}finally(e){return this.getPromise().finally(e)}getPromise(){return this.promise||(this.promise=this.execute()),this.promise}async execute(){try{return{data:await(await this.downloadFn()).blob(),error:null}}catch(e){if(this.shouldThrowOnError)throw e;if(U(e))return{data:null,error:e};throw e}}};var Ie={limit:100,offset:0,sortBy:{column:"name",order:"asc"}},gt={cacheControl:"3600",contentType:"text/plain;charset=UTF-8",upsert:!1},ee=class extends X{static{a(this,"StorageFileApi")}bucketId;constructor(e,t={},s,n){super(e,t,n,"storage"),this.bucketId=s}async uploadOrUpdate(e,t,s,n){return this.handleOperation(async()=>{let i,o={...gt,...n},c={...this.headers,...e==="POST"&&{"x-upsert":String(o.upsert)}},u=o.metadata;if(typeof Blob<"u"&&s instanceof Blob?(i=new FormData,i.append("cacheControl",o.cacheControl),u&&i.append("metadata",this.encodeMetadata(u)),i.append("",s)):typeof FormData<"u"&&s instanceof FormData?(i=s,i.has("cacheControl")||i.append("cacheControl",o.cacheControl),u&&!i.has("metadata")&&i.append("metadata",this.encodeMetadata(u))):(i=s,c["cache-control"]=`max-age=${o.cacheControl}`,c["content-type"]=o.contentType,u&&(c["x-metadata"]=this.toBase64(this.encodeMetadata(u))),(typeof ReadableStream<"u"&&i instanceof ReadableStream||i&&typeof i=="object"&&"pipe"in i&&typeof i.pipe=="function")&&!o.duplex&&(o.duplex="half")),n?.headers)for(let[g,y]of Object.entries(n.headers))c=L(c,g,y);let d=this._removeEmptyFolders(t),l=this._getFinalPath(d),f=await(e=="PUT"?$e:$)(this.fetch,`${this.url}/object/${l}`,i,{headers:c,...o?.duplex?{duplex:o.duplex}:{}});return{path:d,id:f.Id,fullPath:f.Key}})}async upload(e,t,s){return this.uploadOrUpdate("POST",e,t,s)}async uploadToSignedUrl(e,t,s,n){let i=this._removeEmptyFolders(e),o=this._getFinalPath(i),c=new URL(this.url+`/object/upload/sign/${o}`);return c.searchParams.set("token",t),this.handleOperation(async()=>{let u,d={...gt,...n},l={...this.headers,"x-upsert":String(d.upsert)},f=d.metadata;if(typeof Blob<"u"&&s instanceof Blob?(u=new FormData,u.append("cacheControl",d.cacheControl),f&&u.append("metadata",this.encodeMetadata(f)),u.append("",s)):typeof FormData<"u"&&s instanceof FormData?(u=s,u.has("cacheControl")||u.append("cacheControl",d.cacheControl),f&&!u.has("metadata")&&u.append("metadata",this.encodeMetadata(f))):(u=s,l["cache-control"]=`max-age=${d.cacheControl}`,l["content-type"]=d.contentType,f&&(l["x-metadata"]=this.toBase64(this.encodeMetadata(f))),(typeof ReadableStream<"u"&&u instanceof ReadableStream||u&&typeof u=="object"&&"pipe"in u&&typeof u.pipe=="function")&&!d.duplex&&(d.duplex="half")),n?.headers)for(let[y,ne]of Object.entries(n.headers))l=L(l,y,ne);let g=await $e(this.fetch,c.toString(),u,{headers:l,...d?.duplex?{duplex:d.duplex}:{}});return{path:i,fullPath:g.Key}})}async createSignedUploadUrl(e,t){return this.handleOperation(async()=>{let s=this._getFinalPath(e),n={...this.headers};t?.upsert&&(n["x-upsert"]="true");let i=await $(this.fetch,`${this.url}/object/upload/sign/${s}`,{},{headers:n}),o=new URL(this.url+i.url),c=o.searchParams.get("token");if(!c)throw new F("No token returned by API");return{signedUrl:o.toString(),path:e,token:c}})}async update(e,t,s){return this.uploadOrUpdate("PUT",e,t,s)}async move(e,t,s){return this.handleOperation(async()=>await $(this.fetch,`${this.url}/object/move`,{bucketId:this.bucketId,sourceKey:e,destinationKey:t,destinationBucket:s?.destinationBucket},{headers:this.headers}))}async copy(e,t,s){return this.handleOperation(async()=>({path:(await $(this.fetch,`${this.url}/object/copy`,{bucketId:this.bucketId,sourceKey:e,destinationKey:t,destinationBucket:s?.destinationBucket},{headers:this.headers})).Key}))}async createSignedUrl(e,t,s){return this.handleOperation(async()=>{let n=this._getFinalPath(e),i=typeof s?.transform=="object"&&s.transform!==null&&Object.keys(s.transform).length>0,o=await $(this.fetch,`${this.url}/object/sign/${n}`,{expiresIn:t,...i?{transform:s.transform}:{}},{headers:this.headers}),c=new URLSearchParams;s?.download&&c.set("download",s.download===!0?"":s.download),s?.cacheNonce!=null&&c.set("cacheNonce",String(s.cacheNonce));let u=c.toString();return{signedUrl:encodeURI(`${this.url}${o.signedURL}${u?`&${u}`:""}`)}})}async createSignedUrls(e,t,s){return this.handleOperation(async()=>{let n=await $(this.fetch,`${this.url}/object/sign/${this.bucketId}`,{expiresIn:t,paths:e},{headers:this.headers}),i=new URLSearchParams;s?.download&&i.set("download",s.download===!0?"":s.download),s?.cacheNonce!=null&&i.set("cacheNonce",String(s.cacheNonce));let o=i.toString();return n.map(c=>({...c,signedUrl:c.signedURL?encodeURI(`${this.url}${c.signedURL}${o?`&${o}`:""}`):null}))})}download(e,t,s){let i=typeof t?.transform=="object"&&t.transform!==null&&Object.keys(t.transform).length>0?"render/image/authenticated":"object",o=new URLSearchParams;t?.transform&&this.applyTransformOptsToQuery(o,t.transform),t?.cacheNonce!=null&&o.set("cacheNonce",String(t.cacheNonce));let c=o.toString(),u=this._getFinalPath(e),d=a(()=>Re(this.fetch,`${this.url}/${i}/${u}${c?`?${c}`:""}`,{headers:this.headers,noResolveJson:!0},s),"downloadFn");return new Z(d,this.shouldThrowOnError)}async info(e){let t=this._getFinalPath(e);return this.handleOperation(async()=>{let s=await Re(this.fetch,`${this.url}/object/info/${t}`,{headers:this.headers});return me(s)})}async exists(e){let t=this._getFinalPath(e);try{return await mt(this.fetch,`${this.url}/object/${t}`,{headers:this.headers}),{data:!0,error:null}}catch(s){if(this.shouldThrowOnError)throw s;if(U(s)){let n=s instanceof C?s.status:s instanceof q?s.originalError?.status:void 0;if(n!==void 0&&[400,404].includes(n))return{data:!1,error:s}}throw s}}getPublicUrl(e,t){let s=this._getFinalPath(e),n=new URLSearchParams;t?.download&&n.set("download",t.download===!0?"":t.download),t?.transform&&this.applyTransformOptsToQuery(n,t.transform),t?.cacheNonce!=null&&n.set("cacheNonce",String(t.cacheNonce));let i=n.toString(),c=typeof t?.transform=="object"&&t.transform!==null&&Object.keys(t.transform).length>0?"render/image":"object";return{data:{publicUrl:encodeURI(`${this.url}/${c}/public/${s}`)+(i?`?${i}`:"")}}}async remove(e){return this.handleOperation(async()=>await Ue(this.fetch,`${this.url}/object/${this.bucketId}`,{prefixes:e},{headers:this.headers}))}async purgeCache(e,t,s){return this.handleOperation(async()=>{let n=ht(this._getFinalPath(e)),i=new URLSearchParams;t?.transformations&&i.set("transformations","true");let o=i.toString();return await Ue(this.fetch,`${this.url}/cdn/${n}${o?`?${o}`:""}`,{},{headers:this.headers},s)})}async list(e,t,s){return this.handleOperation(async()=>{let n=t?.sortBy?{...Ie.sortBy,...t.sortBy}:Ie.sortBy,i={...Ie,...t,sortBy:n,prefix:e||""};return await $(this.fetch,`${this.url}/object/list/${this.bucketId}`,i,{headers:this.headers},s)})}async listV2(e,t){return this.handleOperation(async()=>{let s={...e};return await $(this.fetch,`${this.url}/object/list-v2/${this.bucketId}`,s,{headers:this.headers},t)})}encodeMetadata(e){return JSON.stringify(e)}toBase64(e){return typeof Buffer<"u"?Buffer.from(e).toString("base64"):btoa(e)}_getFinalPath(e){return`${this.bucketId}/${e.replace(/^\/+/,"")}`}_removeEmptyFolders(e){return e.replace(/^\/|\/$/g,"").replace(/\/+/g,"/")}applyTransformOptsToQuery(e,t){return t.width&&e.set("width",t.width.toString()),t.height&&e.set("height",t.height.toString()),t.resize&&e.set("resize",t.resize),t.format&&e.set("format",t.format),t.quality&&e.set("quality",t.quality.toString()),e}};var yt="2.112.3";var bt={"X-Client-Info":`storage-js/${yt}`};var W="runtime",ge=600,ye=3600,w=class extends Error{static{a(this,"CloudStoragePathError")}constructor(e){super(e),this.name="CloudStoragePathError"}},te=class{static{a(this,"WorkBuddyStorageDownload")}blob;stream;[Symbol.toStringTag]="WorkBuddyStorageDownload";constructor(e,t){this.blob=e,this.stream=t}asStream(){return this.stream()}then(e,t){return this.blob().then(e,t)}catch(e){return this.blob().catch(e)}finally(e){return this.blob().finally(e)}},H=class{static{a(this,"WorkBuddyStorageBucket")}fileApi;constructor(e){this.fileApi=e}upload(e,t,s){return _(this.fileApi.upload(v(e),t,s))}update(e,t,s){return _(this.fileApi.update(v(e),t,s))}list(e="",t){return _(this.fileApi.list(St(e),t))}listPage(e){return _(this.fileApi.listV2({...e,prefix:St(e?.prefix??"")}))}info(e){return _(this.fileApi.info(v(e)))}async exists(e){let t=await this.fileApi.exists(v(e));return t.error?{data:null,error:Et(t.error)}:{data:t.data,error:null}}download(e){let t=this.fileApi.download(v(e));return new te(()=>_(t),()=>_(t.asStream()))}remove(e){if(e.length===0)throw new w("remove requires at least one object path.");return _(this.fileApi.remove(e.map(v)))}copy(e,t){return _(this.fileApi.copy(v(e),v(t)))}move(e,t){return _(this.fileApi.move(v(e),v(t)))}createSignedUrl(e,t=ge){return _(this.fileApi.createSignedUrl(v(e),kt(t)))}createSignedUrls(e,t=ge){if(e.length===0)throw new w("createSignedUrls requires at least one object path.");return _(this.fileApi.createSignedUrls(e.map(v),kt(t)))}createSignedUploadUrl(e,t){return _(this.fileApi.createSignedUploadUrl(v(e),{upsert:t?.upsert??!1}))}uploadToSignedUrl(e,t,s,n){if(!t)throw new w("signed upload token is required.");return _(this.fileApi.uploadToSignedUrl(v(e),t,s,n))}},re=class extends H{static{a(this,"WorkBuddyStorageModule")}runtime;constructor(e){let s=e.from(W);super(s),this.runtime=new H(s)}from(e=W){if(e!==W)throw new w(`Only the "${W}" storage bucket is available.`);return this.runtime}userPath(e,t){return wt("users",e,t)}sharedPath(e,t){return wt("shared",e,t)}};function xt(r,e){let t={from:a(s=>new ee(`${r.endpoint}${R.storage}`,bt,s,e),"from")};return new re(t)}a(xt,"createStorageModule");function wt(r,e,t){let s=sr(e,"owner/user id"),n=Ce(t,!1);return v(`${r}/${s}/${n}`)}a(wt,"scopedPath");function v(r){let e=Ce(r,!1);if(!e.includes("/"))throw new w("Object paths must use users/<uid>/... or shared/<ownerUid>/....");let[t,s,...n]=e.split("/");if(t!=="users"&&t!=="shared"||!s||n.length===0)throw new w("Object paths must use users/<uid>/... or shared/<ownerUid>/....");return e}a(v,"validateObjectPath");function St(r){if(r==="")return"";let e=Ce(r,!0),[t,s]=e.split("/");if(t==="shared"&&!s)return"shared";if(t!=="users"&&t!=="shared"||!s)throw new w("List prefixes must start with users/<uid> or shared/<ownerUid>.");return e}a(St,"validateObjectPrefix");function Ce(r,e){if(typeof r!="string"||r.trim()==="")throw new w("Storage path must be a non-empty relative path.");let t=r.trim();for(let i=0;i<3;i+=1)try{let o=decodeURIComponent(t);if(o===t)break;t=o}catch{throw new w("Storage path contains invalid URL encoding.")}if(t.startsWith("/")||t.includes("\\")||t.includes("\0")||t.includes("//")||!e&&t.endsWith("/"))throw new w("Storage path is not a safe relative object path.");let s=e?t.replace(/\/+$/,""):t;if(s.split("/").some(i=>i===""||i==="."||i===".."))throw new w("Storage path traversal is not allowed.");return s}a(Ce,"validatePath");function sr(r,e){if(!r)throw new w(`${e} is not a valid storage path segment.`);let t=r;for(let s=0;s<3;s+=1)try{let n=decodeURIComponent(t);if(n===t)break;t=n}catch{throw new w(`${e} contains invalid URL encoding.`)}if(t.includes("/")||t.includes("\\")||t.includes("\0")||t==="."||t==="..")throw new w(`${e} is not a valid storage path segment.`);return t}a(sr,"validatePathSegment");function kt(r){if(!Number.isInteger(r)||r<=0||r>ye)throw new w(`Signed URL expiry must be an integer between 1 and ${ye} seconds.`);return r}a(kt,"validateSignedURLTTL");async function _(r){let e=await r;return e.error?{data:null,error:Et(e.error)}:e.data===null?{data:null,error:{name:"CloudStorageResponseError",message:"Storage API returned neither data nor an error."}}:{data:e.data,error:null}}a(_,"mapStorageResult");function Et(r){if(r instanceof Error){let e=r;return{name:e.name,message:e.message,status:e.status,statusCode:e.statusCode,code:e.code,cause:r}}return{name:"CloudStorageError",message:String(r),cause:r}}a(Et,"normalizeStorageError");var se=class{static{a(this,"WorkBuddyCloudClient")}config;database;auth;storage;llm;constructor(e,t={}){this.config=e,this.auth=new D(e,we(e,oe),{storage:t.storage,workBuddyMiniProgram:t.workBuddyMiniProgram});let s=we(e,()=>this.auth.getAccessToken());this.database=et(e,s),this.storage=xt(e,s),this.llm=new M(e,s)}get endpoint(){return this.config.endpoint}get oauthRelayBaseUrl(){return this.config.oauthRelayBaseUrl}};function vt(r){return new se(je(r),{storage:r.storage})}a(vt,"createWorkBuddyCloud");function Pt(r){return r.kind==="unauthenticated"||r.code==="invalid_grant"}a(Pt,"shouldClearCredentials");return $t(nr);})();
+
+</script>
+<script>
+/* 云服务公开配置：值来自 workbuddy_cloud_service(activate) 返回的 publicConfig。
+ * 只含可下发到前端的公开字段；环境 ID 与服务端密钥一律不在这里。
+ * endpoint 是应用发布域名，与线上页面同源；复用同一个 applicationId 时不会变。 */
+window.SCOREBUG_CLOUD_CONFIG = {
+  endpoint: 'https://scorebug-live-relay.app.workbuddy.host',
+  oauthRelayBaseUrl: 'https://www.workbuddy.cn/v2/as/genie-baas/oauth',
+  publishableKey: 'wbpk_g7Zw2aK5IFYe9Sd2P65p6F_rrDrrqc0LBoM3tqYmDoaau1K66ab2eDM'
+};
+
+</script>
+<script>
+/* 云端房间快照：把线上房间的比赛状态 / 时间轴写进 WorkBuddy 云数据库，
+ * 让控制器与 OBS 叠加层在换设备、刷新、控制器短暂离线后仍能恢复同一场比赛。
+ * 只有调用 saveRoom / loadRoom 才会发起请求；SDK 未加载（离线静态版）时明确返回未启用。
+ * CLOUD-SYNC-START / END 标记供发布检查脚本识别云端代码块。 */
+/* CLOUD-SYNC-START */
+(function (root) {
+  'use strict';
+  var CFG = root.SCOREBUG_CLOUD_CONFIG || null;
+  var TABLE = 'scorebug_rooms';
+  var client = null, initErr = null;
+
+  function fail(code, message) { return { ok: false, code: code, message: message }; }
+  function classify(err) {
+    var code = err && (err.code || err.status || err.statusCode);
+    var msg = (err && (err.message || err.msg)) || String(err || '');
+    if (code === 401 || /credential|token.*invalid|unauthorized/i.test(msg))
+      return fail('credentials', '云服务凭证不可用，请确认应用已开启云服务。');
+    if (code === '42P01') return fail('table-missing', '云端数据表尚未创建。');
+    if (code === '42501') return fail('permission', '没有权限访问该房间数据。');
+    if (code === '23505') return fail('conflict', '房间快照冲突，请重试。');
+    if (/quota|credit|exhaust|rate.?limit/i.test(msg))
+      return fail('quota', '云服务额度或频率受限，请在应用管理中查看配额。');
+    if (/network|fetch|timeout|failed to fetch|load failed/i.test(msg))
+      return fail('network', '网络不可用，云端同步已跳过；本地功能不受影响。');
+    return fail('unknown', '云端同步失败：' + msg);
+  }
+  function ensure() {
+    if (client) return { ok: true };
+    if (initErr) return initErr;
+    if (!CFG || !CFG.endpoint || !CFG.publishableKey) {
+      initErr = fail('not-configured', '当前为离线静态版，未开启云服务。');
+      return initErr;
+    }
+    if (!root.WorkBuddyCloud || typeof root.WorkBuddyCloud.createWorkBuddyCloud !== 'function') {
+      initErr = fail('sdk-missing', '云服务 SDK 未加载，无法同步。');
+      return initErr;
+    }
+    try {
+      /* 唯一的客户端初始化点：endpoint / publishableKey / oauthRelayBaseUrl 全部来自 publicConfig */
+      client = root.WorkBuddyCloud.createWorkBuddyCloud({
+        endpoint: CFG.endpoint,
+        oauthRelayBaseUrl: CFG.oauthRelayBaseUrl,
+        publishableKey: CFG.publishableKey
+      });
+    } catch (e) { initErr = classify(e); return initErr; }
+    return { ok: true };
+  }
+  function normRoom(v) {
+    return String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+  }
+  function simpleHash(s) {
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+    return 'h' + (h >>> 0).toString(16);
+  }
+  function hashKey(key) {
+    var s = String(key || '');
+    if (!s) return Promise.resolve('');
+    if (root.crypto && root.crypto.subtle && root.TextEncoder) {
+      return root.crypto.subtle.digest('SHA-256', new root.TextEncoder().encode(s))
+        .then(function (buf) {
+          var b = new Uint8Array(buf), out = '';
+          for (var i = 0; i < b.length; i++) out += ('0' + b[i].toString(16)).slice(-2);
+          return out;
+        })['catch'](function () { return simpleHash(s); });
+    }
+    return Promise.resolve(simpleHash(s));
+  }
+  function loadRoom(room) {
+    var id = normRoom(room);
+    if (id.length < 4) return Promise.resolve(fail('bad-room', '房间号至少 4 位字母或数字。'));
+    var ok = ensure(); if (!ok.ok) return Promise.resolve(ok);
+    return client.database.from(TABLE)
+      .select('room_id,control_key_hash,state,events,options,duration,revision,updated_at')
+      .eq('room_id', id).maybeSingle()
+      .then(function (r) {
+        if (r.error) return classify(r.error);
+        return { ok: true, data: r.data || null };
+      })['catch'](function (e) { return classify(e); });
+  }
+  function saveRoom(room, payload, key) {
+    var id = normRoom(room);
+    if (id.length < 4) return Promise.resolve(fail('bad-room', '房间号至少 4 位字母或数字。'));
+    var ok = ensure(); if (!ok.ok) return Promise.resolve(ok);
+    var p = payload || {};
+    return hashKey(key).then(function (kh) {
+      return loadRoom(id).then(function (cur) {
+        if (!cur.ok) return cur;
+        var prev = cur.data;
+        /* 已有控制器占用房间时，控制密钥不匹配一律拒绝覆写 */
+        if (prev && prev.control_key_hash && kh && prev.control_key_hash !== kh)
+          return fail('key-mismatch', '该房间已被其他控制器占用，控制密钥不匹配。');
+        var rev = (prev ? Number(prev.revision) || 0 : 0) + 1;
+        var row = {
+          room_id: id,
+          control_key_hash: kh,
+          state: p.state || {},
+          events: Array.isArray(p.events) ? p.events : [],
+          options: p.options || {},
+          duration: Math.max(1, Number(p.duration) || 600),
+          revision: rev,
+          updated_at: new Date().toISOString()
+        };
+        return client.database.from(TABLE).upsert(row, { onConflict: 'room_id' })
+          .select('room_id,revision,updated_at')
+          .then(function (r) {
+            if (r.error) return classify(r.error);
+            var rows = Array.isArray(r.data) ? r.data : [];
+            if (!rows.length) return fail('permission', '云端写入未生效，可能被权限策略拦截。');
+            return { ok: true, data: rows[0], revision: rev };
+          })['catch'](function (e) { return classify(e); });
+      });
+    })['catch'](function (e) { return classify(e); });
+  }
+  function status() {
+    var s = ensure();
+    return {
+      configured: !!(CFG && CFG.endpoint && CFG.publishableKey),
+      sdkLoaded: !!(root.WorkBuddyCloud && root.WorkBuddyCloud.createWorkBuddyCloud),
+      ready: s.ok,
+      code: s.ok ? '' : s.code,
+      message: s.ok ? '云服务已就绪' : s.message
+    };
+  }
+  root.ScorebugCloud = {
+    ensure: ensure, loadRoom: loadRoom, saveRoom: saveRoom,
+    normRoom: normRoom, status: status
+  };
+})(window);
+/* CLOUD-SYNC-END */
+
+</script>
+<!-- CLOUD-ASSETS-END -->
+<script>
 (function(){
   var G = window.ScorebugBAS;
   var V = window.ScorebugVideoTimeline;
@@ -1388,6 +2076,7 @@ easing:e.sets[s].defaultEasing||this.options.easing||"linear",duration:e.sets[s]
       renderPreviewAt(t);
     }
     if (changedSecond || !fromVideo){ renderCueList(); renderCurrentState(); }
+    broadcastSync(t);
   }
   function seekVideo(t){
     t = Math.max(0, Number(t) || 0);
@@ -1618,6 +2307,7 @@ easing:e.sets[s].defaultEasing||this.options.easing||"linear",duration:e.sets[s]
     if (els.engineToggle.checked) initEngine(currentCode);
     else { destroyEngine(); setStatus('已生成 BAS 脚本（' + defs + ' 个 def 对象，' + (events.length ? events.length + ' 个更新事件' : '静态常驻') + '，投放 ' + fmtTime(d.offset) + '）。'); }
     renderMarkers(); renderCueList(); renderCurrentState();
+    broadcastState();
   }
   function renderPreview(state, opts, events, offset){
     var t = Number(els.previewTime.value);
@@ -1629,8 +2319,312 @@ easing:e.sets[s].defaultEasing||this.options.easing||"linear",duration:e.sets[s]
     els.timeLabel.textContent = fmtTime(t);
   }
 
+  /* ---------- 直播控制（线上房间） / 视频导出 ---------- */
+  var B = window.ScorebugBurner, R = window.ScorebugRelay;
+  var localStatus = document.getElementById('localStatus');
+  var burnInfo = document.getElementById('burnInfo');
+  var burnBar = document.getElementById('burnBar');
+  var btnBurn = document.getElementById('btnBurn');
+  var btnBurnStop = document.getElementById('btnBurnStop');
+  var roomInput = document.getElementById('roomId');
+  var serverInput = document.getElementById('relayServer');
+  var linkInput = document.getElementById('overlayLink');
+  var relayStatus = document.getElementById('relayStatus');
+  var formatSelect = document.getElementById('burnFormat');
+  var formatInfo = document.getElementById('formatInfo');
+  var btnConnect = document.getElementById('btnRelayConnect');
+  var btnDisconnect = document.getElementById('btnRelayDisconnect');
+  var btnCopyConvert = document.getElementById('btnCopyConvert');
+  function setLocalStatus(msg, err){
+    localStatus.textContent = msg;
+    localStatus.style.color = err ? 'var(--warn)' : 'var(--ok)';
+  }
+  function randomCode(n){
+    var a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s = '';
+    try {
+      var c = window.crypto || window.msCrypto, b = new Uint8Array(n);
+      c.getRandomValues(b);
+      for (var i = 0; i < n; i++) s += a[b[i] % a.length];
+    } catch(e){ for (var j = 0; j < n; j++) s += a[Math.floor(Math.random() * a.length)]; }
+    return s;
+  }
+  function absoluteTimeline(){
+    return {
+      initial: collectState(),
+      events: collectEvents(),
+      duration: Math.max(1, parseInt(els.videoDuration.value, 10) || 600)
+    };
+  }
+  function overlayPayload(){
+    var d = absoluteTimeline();
+    return { room: roomId, state: d.initial, events: d.events, options: collectOptions(),
+             duration: d.duration, t: currentSec };
+  }
+
+  /* ===== 线上房间中继：不连接时没有任何网络请求 ===== */
+  var bakedRelay = 'https://scorebug-live-relay.app.workbuddy.host/?sharecode=73BAOORXNH';
+  if (bakedRelay.charAt(0) === '_') bakedRelay = '';   // 未写入线上地址时视为空
+  var selfOrigin = (/^https?:$/.test(location.protocol) && !/github\.io$/i.test(location.hostname))
+    ? location.origin : '';
+  var urlParams = new URLSearchParams(location.search);
+  var urlRelay = urlParams.get('relay') ? R.normServer(urlParams.get('relay')) : '';
+  var urlRoom = R.normRoom(urlParams.get('room'));
+  serverInput.value = urlRelay || bakedRelay || selfOrigin;
+  var roomId = urlRoom || R.normRoom(roomInput.value) || randomCode(6);
+  roomInput.value = roomId;
+  var controlKey = randomCode(12);
+  var relay = null, bc = null, presenceText = '', stateTimer = null, syncTimer = null;
+
+  function currentRoom(){ return R.normRoom(roomInput.value); }
+  function serverBase(){ return R.normServer(serverInput.value); }
+  /* 托管平台的分享链接带 sharecode：必须透传给叠加层地址与中继接口，否则会被 403 拦截 */
+  function relayTicket(){
+    var t = R.pageTicket();
+    if (!t) { try { t = R.splitServer(serverInput.value).ticket; } catch(e){} }
+    return t || '';
+  }
+  function overlayUrl(){
+    var base = serverBase();
+    var page = base ? base + '/live-overlay.html' : 'live-overlay.html';
+    var q = '?room=' + encodeURIComponent(currentRoom()) + '&panel=0';
+    var t = relayTicket();
+    if (t) q += '&sharecode=' + encodeURIComponent(t);
+    if (base && base !== location.origin) q += '&relay=' + encodeURIComponent(base);
+    return page + q;
+  }
+  function updateOverlayLink(){ linkInput.value = overlayUrl(); }
+  function openBroadcast(){
+    if (bc) { try { bc.close(); } catch(e){} bc = null; }
+    try { if (window.BroadcastChannel) bc = new BroadcastChannel('scorebug-overlay-' + roomId); }
+    catch(e){ bc = null; }
+  }
+  function broadcast(msg){
+    /* 同源 BroadcastChannel 也按房间号分频道；线上消息不含 room，由服务端按连接绑定 */
+    var local = Object.assign({}, msg, { room: roomId });
+    if (bc) { try { bc.postMessage(local); } catch(e){} }
+    if (relay) relay.send(msg);
+  }
+  function broadcastState(){
+    if (stateTimer) return;
+    stateTimer = setTimeout(function(){ stateTimer = null; broadcast({ type:'state', payload: overlayPayload() }); }, 150);
+  }
+  function broadcastSync(t){
+    if (syncTimer) return;
+    syncTimer = setTimeout(function(){ syncTimer = null; broadcast({ type:'sync', t: t }); }, 200);
+  }
+  function setRelayStatus(s){
+    var t = s.transport === 'ws' ? 'WebSocket' :
+            (s.transport === 'poll' ? 'HTTP 长轮询' : (s.transport === 'reconnecting' ? '重连中' : '离线'));
+    relayStatus.className = 'link-state ' + (s.connected ? 'on' : 'off');
+    relayStatus.textContent = (s.connected ? '已连接' : '未连接') + ' · 房间 ' + s.room + ' · ' + t +
+      (presenceText ? ' · ' + presenceText : '') + (s.detail ? ' · ' + s.detail : '');
+    btnConnect.disabled = !!s.connected;
+    btnDisconnect.disabled = !s.connected && s.transport === 'offline';
+  }
+  function disconnectRelay(){
+    if (relay) { try { relay.close(); } catch(e){} relay = null; }
+    presenceText = '';
+    setRelayStatus({ connected:false, transport:'offline', room:currentRoom(), detail:'' });
+  }
+  btnConnect.addEventListener('click', function(){
+    var srv = serverBase(), rm = currentRoom();
+    if (rm.length < 4){ setLocalStatus('房间号至少 4 位，只能用字母和数字。', true); return; }
+    if (!srv){ setLocalStatus('请填写线上中继地址；从线上服务打开时会自动填当前站点。', true); return; }
+    disconnectRelay();
+    roomId = rm; openBroadcast(); updateOverlayLink();
+    relay = R.create({
+      server: srv, room: rm, role: 'controller', key: controlKey, ticket: relayTicket(),
+      onStatus: setRelayStatus,
+      onMessage: function(m){
+        if (m.type === 'presence'){
+          presenceText = '控制器 ' + m.controllers + ' / 观看 ' + m.viewers;
+          if (relay) setRelayStatus(relay.status());
+        } else if (m.type === 'error'){
+          setLocalStatus('中继返回：' + (m.message || m.error || '错误'), true);
+        }
+      }
+    });
+    relay.connect();
+    broadcastState(); broadcastSync(currentSec);
+    setLocalStatus('正在连接房间 ' + rm + '；成功后本页改动会实时推给同房间叠加层，其它房间收不到。');
+  });
+  btnDisconnect.addEventListener('click', function(){
+    disconnectRelay(); setLocalStatus('已断开线上房间，本页恢复完全离线。');
+  });
+  roomInput.addEventListener('input', function(){ updateOverlayLink(); });
+  serverInput.addEventListener('input', function(){ updateOverlayLink(); });
+  document.getElementById('btnNewRoom').addEventListener('click', function(){
+    roomId = randomCode(6); roomInput.value = roomId; controlKey = randomCode(12);
+    disconnectRelay(); openBroadcast(); updateOverlayLink();
+    setLocalStatus('已换新房间 ' + roomId + '，需要重新连接；旧房间的叠加层不会收到本页消息。');
+  });
+  function copyText(text, okMsg){
+    var done = function(){ setLocalStatus(okMsg); };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, function(){ fallbackCopy(text, done); });
+    } else fallbackCopy(text, done);
+  }
+  function fallbackCopy(text, done){
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); }
+    catch(e){ setLocalStatus('复制失败，请手动选中「叠加层地址」输入框复制。', true); }
+    ta.remove();
+  }
+  document.getElementById('btnCopyOverlayLink').addEventListener('click', function(){
+    updateOverlayLink();
+    copyText(linkInput.value, '已复制叠加层地址；粘贴到 OBS 浏览器源即可，房间里只有你能控制。');
+  });
+  document.getElementById('btnOpenOverlay').addEventListener('click', function(){
+    var payload;
+    try { payload = encodeURIComponent(JSON.stringify(overlayPayload())); }
+    catch(e){ setLocalStatus('叠加层数据序列化失败：' + e.message, true); return; }
+    var w = window.open('live-overlay.html?room=' + encodeURIComponent(roomId) +
+                        '&offline=1&panel=0#' + payload, 'scorebugOverlay');
+    broadcast({ type:'state', payload: overlayPayload() });
+    if (!w){ setLocalStatus('浏览器拦截了弹窗；请允许弹窗，或手动打开同目录 live-overlay.html。', true); return; }
+    setLocalStatus('已用 URL 快照打开本地叠加层（不连接线上中继）。');
+  });
+  document.getElementById('btnOverlaySync').addEventListener('click', function(){
+    broadcast({ type:'state', payload: overlayPayload() });
+    broadcast({ type:'sync', t: currentSec });
+    setLocalStatus('已推送当前比赛状态与视频秒数到房间 ' + roomId + '（未连接时仅同源页面可见）。');
+  });
+  /* CLOUD-LOGIC-START */
+  var C = window.ScorebugCloud;
+  var cloudStatus = document.getElementById('cloudStatus');
+  var cloudAuto = false, cloudSaving = false, cloudRev = 0, cloudSaveTimer = null;
+  function setCloud(msg, err){
+    cloudStatus.textContent = msg;
+    cloudStatus.style.color = err ? 'var(--warn)' : 'var(--ok)';
+  }
+  function cloudSnapshot(){
+    var p = overlayPayload();
+    return { state: p.state, events: p.events, options: p.options, duration: p.duration };
+  }
+  function saveCloud(auto){
+    if (!C || cloudSaving) return;
+    cloudSaving = true;
+    setCloud('正在写入云端快照…');
+    C.saveRoom(currentRoom(), cloudSnapshot(), controlKey).then(function (r){
+      cloudSaving = false;
+      if (!r.ok){ setCloud(r.message, true); if (!auto) setLocalStatus(r.message, true); return; }
+      cloudAuto = true; cloudRev = r.revision;
+      setCloud('云端已保存 · 第 ' + r.revision + ' 版 · ' + new Date().toLocaleTimeString());
+      if (!auto) setLocalStatus('房间 ' + currentRoom() + ' 的比赛状态与时间轴已保存到云端，其它设备打开同房间叠加层会自动恢复。');
+    });
+  }
+  function loadCloud(){
+    if (!C) return;
+    setCloud('正在读取云端快照…');
+    C.loadRoom(currentRoom()).then(function (r){
+      if (!r.ok){ setCloud(r.message, true); setLocalStatus(r.message, true); return; }
+      if (!r.data){
+        setCloud('云端暂无该房间的快照', true);
+        setLocalStatus('云端没有房间 ' + currentRoom() + ' 的快照，请先点「保存到云端」。', true);
+        return;
+      }
+      var d = r.data;
+      applyTimelineToForm({
+        initial: Object.assign({}, G.DEFAULT_STATE, d.state || {}),
+        events: Array.isArray(d.events) ? d.events : [],
+        video: { duration: d.duration || 600 }
+      }, false, true);
+      cloudAuto = true; cloudRev = Number(d.revision) || 0;
+      setCloud('已从云端恢复 · 第 ' + cloudRev + ' 版');
+      setLocalStatus('已从云端恢复房间 ' + currentRoom() + ' 的比赛状态与时间轴（' +
+        (Array.isArray(d.events) ? d.events.length : 0) + ' 个事件）。');
+      broadcastState();
+    });
+  }
+  document.getElementById('btnCloudSave').addEventListener('click', function(){ saveCloud(false); });
+  document.getElementById('btnCloudLoad').addEventListener('click', loadCloud);
+  btnConnect.addEventListener('click', function(){
+    cloudAuto = true;
+    setTimeout(function(){ saveCloud(true); }, 700);
+  });
+  document.getElementById('btnNewRoom').addEventListener('click', function(){
+    cloudAuto = false; cloudRev = 0; setCloud('已换房间，云端快照待重新保存');
+  });
+  /* 主动保存 / 连接后，状态变化会节流写入云端；未操作时页面不发任何云请求 */
+  var baseBroadcastState = broadcastState;
+  broadcastState = function(){
+    baseBroadcastState();
+    if (cloudAuto && !cloudSaveTimer){
+      cloudSaveTimer = setTimeout(function(){ cloudSaveTimer = null; saveCloud(true); }, 2500);
+    }
+  };
+  var st = C ? C.status() : { ready:false, message:'云服务模块未加载' };
+  setCloud(st.ready ? '云服务已就绪 · 可保存 / 恢复房间快照' : st.message, !st.ready);
+  /* CLOUD-LOGIC-END */
+  openBroadcast(); updateOverlayLink();
+  setRelayStatus({ connected:false, transport:'offline', room:roomId, detail:'' });
+
+  /* ===== 导出格式：列表由浏览器实际支持能力生成 ===== */
+  var formats = B.listFormats();
+  formats.forEach(function(f){
+    var o = document.createElement('option');
+    o.value = f.id; o.textContent = f.label + ' — ' + f.note;
+    formatSelect.appendChild(o);
+  });
+  formatSelect.value = B.defaultFormatId();
+  function selectedFormat(){ return formats.filter(function(f){ return f.id === formatSelect.value; })[0] || formats[0]; }
+  function showFormatInfo(){
+    var f = selectedFormat();
+    formatInfo.textContent = '当前：' + f.label + ' · ' + f.note;
+  }
+  formatSelect.addEventListener('change', showFormatInfo);
+  showFormatInfo();
+  var lastConvertCmd = '';
+  btnCopyConvert.addEventListener('click', function(){ copyText(lastConvertCmd, '已复制本机转换命令：' + lastConvertCmd); });
+  var burnCtrl = null;
+  btnBurn.addEventListener('click', function(){
+    if (burnCtrl && burnCtrl.isRunning()){ setLocalStatus('已有录制在进行中。', true); return; }
+    var f = els.localVideoFile.files && els.localVideoFile.files[0];
+    if (!f){ setLocalStatus('请先在上方「在线视频 · 时间同步」里选择本地视频文件。', true); return; }
+    var probe = B.isSupported();
+    if (!probe.ok && !probe.okWithoutAudio){ setLocalStatus(probe.reason, true); return; }
+    var d = absoluteTimeline();
+    btnBurn.disabled = true; btnBurnStop.disabled = false; burnBar.style.width = '0%';
+    burnCtrl = B.burn({
+      file: f, initial: d.initial, events: d.events, options: collectOptions(),
+      duration: d.duration, format: formatSelect.value,
+      onStatus: function(m){ burnInfo.textContent = m; setLocalStatus(m); },
+      onProgress: function(p, t){
+        burnBar.style.width = (p * 100).toFixed(1) + '%';
+        burnInfo.textContent = '录制进度 ' + (p * 100).toFixed(1) + '% · ' + fmtTime(t) + ' / ' + fmtTime(d.duration) +
+          ' · ' + selectedFormat().label;
+      },
+      onDone: function(blob, meta){
+        var name = '棒球计分-叠加视频.' + meta.ext;
+        B.downloadBlob(name, blob);
+        lastConvertCmd = B.convertCommand(name, meta.targetExt || (meta.ext === 'webm' ? 'mp4' : 'mov'));
+        btnCopyConvert.disabled = false;
+        btnBurn.disabled = false; btnBurnStop.disabled = true; burnCtrl = null;
+        burnBar.style.width = '100%';
+        burnInfo.textContent = '导出完成：' + name + '（' + (blob.size / 1048576).toFixed(1) + ' MB，' +
+          meta.width + '×' + meta.height + (meta.audio ? '，含原声' : '，静音') + '）。' +
+          (meta.needsConversion ? '这是中间文件，请用转换命令生成 .' + meta.targetExt + '。' : '') +
+          (meta.fallback ? '（当前容器不受支持，已自动回退）' : '');
+        formatInfo.textContent = '本机转换命令：' + lastConvertCmd;
+        setLocalStatus(burnInfo.textContent + ' 文件已下载到本机，未上传。');
+      },
+      onError: function(m){
+        btnBurn.disabled = false; btnBurnStop.disabled = true; burnCtrl = null;
+        burnInfo.textContent = '烧录失败：' + m;
+        setLocalStatus('烧录失败：' + m, true);
+      }
+    });
+  });
+  btnBurnStop.addEventListener('click', function(){
+    if (burnCtrl) burnCtrl.stop();
+    btnBurn.disabled = false; btnBurnStop.disabled = true; burnCtrl = null;
+  });
+
   /* ---------- 事件绑定 ---------- */
   document.querySelectorAll('input,select').forEach(function(el){
+    if (el.closest('.local-tools')) return; // 房间/中继/格式控件由独立逻辑处理，不触发生成
     if (el.closest('#eventRows') || el.id === 'previewTime' || el.id === 'engineToggle' ||
         el.id === 'sizeQuick' || el.id === 'fontQuick') return;
     if (el.id === 'showVideo' || el.id === 'videoBrightness') return; // 仅影响预览层，不重新生成 BAS

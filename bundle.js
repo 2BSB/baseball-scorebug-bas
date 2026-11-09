@@ -10,7 +10,9 @@ if (!html.includes('<script src="jquery.min.js"></script>')) {
   throw new Error('找不到未打包的模板（应包含外部 script 标签）');
 }
 if (src !== backup) fs.writeFileSync(backup, html, 'utf8');
-const files = ['jquery.min.js', 'bas-engine.js', 'scorebug-generator.js', 'video-timeline.js'];
+const files = ['jquery.min.js', 'bas-engine.js', 'scorebug-generator.js', 'video-timeline.js',
+               'relay-client.js', 'video-burn.js',
+               'cloud-sdk.global.js', 'cloud-config.js', 'cloud-sync.js'];
 files.forEach(function (f) {
   const tag = '<script src="' + f + '"></script>';
   const code = fs.readFileSync(path.join(root, f), 'utf8');

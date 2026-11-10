@@ -26,6 +26,8 @@ const STATIC = {
   '/': ['index.html', 'text/html; charset=utf-8'],
   '/index.html': ['index.html', 'text/html; charset=utf-8'],
   '/live-overlay.html': ['live-overlay.html', 'text/html; charset=utf-8'],
+  '/mobile-control.html': ['mobile-control.html', 'text/html; charset=utf-8'],
+  '/m.html': ['mobile-control.html', 'text/html; charset=utf-8'],
   '/reference-scoreboard.png': ['reference-scoreboard.png', 'image/png']
 };
 
@@ -160,6 +162,33 @@ function handleApi(u, req, res) {
       cloud: 'workbuddy-cloud-service',
       uptimeSec: Math.round((now() - startedAt) / 1000)
     });
+  }
+  /* 移动端「可选加入的房间号」：只列仍有人在线的房间号与人数，
+   * 不返回控制密钥、历史消息或任何比赛数据；locked 只说明「需要填密钥」。 */
+  if (p === '/api/rooms') {
+    const t = now(), list = [];
+    rooms.forEach(function (r) {
+      if (!r.clients.size && !r.pollPeers.size) return;
+      const pr = presence(r);
+      list.push({
+        id: r.id, controllers: pr.controllers, viewers: pr.viewers,
+        locked: !!r.key, activeSec: Math.max(0, Math.round((t - r.last) / 1000))
+      });
+    });
+    list.sort(function (a, b) { return a.activeSec - b.activeSec; });
+    return replyJson(res, 200, { ok: true, rooms: list.slice(0, 20), total: list.length });
+  }
+  /* 新控制器 / 手机接管房间时读取最后一次状态，避免把桌面端的时间轴覆盖成空白。
+   * 内容与同房间叠加层本来就能收到的 state 一致，不含控制密钥。 */
+  if (p === '/api/state') {
+    const id = normRoom(u.searchParams.get('room'));
+    const r = rooms.get(id);
+    if (!r) return replyJson(res, 200, { ok: true, room: id, state: null, seq: 0 });
+    let payload = null;
+    for (let i = r.history.length - 1; i >= 0; i--) {
+      if (r.history[i].type === 'state') { payload = r.history[i].payload; break; }
+    }
+    return replyJson(res, 200, { ok: true, room: id, state: payload, seq: r.seq });
   }
   if (p === '/api/poll') {
     const id = normRoom(u.searchParams.get('room'));

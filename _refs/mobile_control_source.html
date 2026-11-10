@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<title>棒球计分 · 手机控制</title>
+<style>
+  :root{
+    --bg:#0b1220; --card:#151f31; --card2:#1b2940; --line:#2c3a52;
+    --text:#eef4ff; --muted:#9db0cc; --brand:#3d7bff; --brand2:#1a56c4;
+    --ok:#43d39a; --warn:#ffbd66; --white:#ffffff;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text)}
+  body{font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+       overscroll-behavior-y:contain;-webkit-text-size-adjust:100%}
+  button,input{font:inherit;color:inherit}
+  button{touch-action:manipulation;user-select:none;-webkit-user-select:none;cursor:pointer;border:0;
+         background:none;transition:transform .08s ease,background .12s ease,border-color .12s ease}
+  button:active:not(:disabled){transform:scale(.96)}
+  button:disabled{opacity:.38;cursor:not-allowed}
+  input{font-size:16px;background:#0e1829;border:1px solid var(--line);border-radius:12px;
+        padding:12px 14px;min-height:50px;width:100%;outline:none;touch-action:manipulation}
+  input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(61,123,255,.18)}
+  input[readonly]{color:var(--muted)}
+  .app{max-width:720px;margin:0 auto;padding:0 14px calc(96px + env(safe-area-inset-bottom))}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(11,18,32,.96);backdrop-filter:blur(8px);
+          padding:12px 0 10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+  .brand{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700}
+  .tag{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:#26344c;color:var(--muted)}
+  .tag.on{background:rgba(67,211,154,.16);color:var(--ok)}
+  .tag.read{background:rgba(255,189,102,.16);color:var(--warn)}
+  .link{font-size:12.5px;color:var(--muted);margin-top:4px;min-height:19px;word-break:break-all}
+  .link.on{color:var(--ok)}
+  .link.off{color:var(--warn)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+  .card-title{display:flex;align-items:center;justify-content:space-between;gap:10px;
+              font-size:14px;font-weight:700;color:#bcd2f5;letter-spacing:.3px;margin-bottom:10px}
+  .card-title .mini{font-size:13px;color:var(--muted);border:1px solid var(--line);
+                    border-radius:10px;padding:8px 12px;min-height:44px;background:var(--card2)}
+  .lbl{display:block;font-size:12.5px;color:var(--muted);margin:10px 0 6px}
+  .input-row{display:flex;gap:8px;align-items:center}
+  .input-row input{flex:1;min-width:0;letter-spacing:1px;text-transform:uppercase}
+  .input-row .mini{flex:none;min-height:50px;padding:0 16px;border:1px solid var(--line);
+                   border-radius:12px;background:var(--card2);color:var(--text);font-size:14px}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 6px;scroll-snap-type:x mandatory;
+         -webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;scroll-snap-align:start;min-height:54px;padding:8px 14px;border-radius:14px;
+        background:var(--card2);border:1px solid var(--line);text-align:left;letter-spacing:1px;font-weight:700}
+  .chip small{display:block;font-size:11px;font-weight:400;letter-spacing:0;color:var(--muted);margin-top:2px}
+  .chip.on{border-color:var(--brand);background:rgba(61,123,255,.16)}
+  .chip.locked small{color:var(--warn)}
+  .empty{font-size:12.5px;color:var(--muted);padding:8px 2px}
+  .btn-grid{display:grid;gap:10px;margin-top:12px}
+  .btn-grid.two{grid-template-columns:1fr 1fr}
+  .btn-grid.three{grid-template-columns:repeat(3,1fr)}
+  .btn{min-height:54px;border-radius:14px;background:var(--card2);border:1px solid var(--line);
+       font-size:15px;font-weight:600;padding:10px 8px}
+  .btn.primary{background:var(--brand2);border-color:var(--brand2);color:#fff;min-height:56px;font-size:16px}
+  .btn.ghost{background:transparent}
+  .btn.warn{border-color:rgba(255,189,102,.45);color:var(--warn)}
+  .btn.on{background:var(--white);border-color:var(--white);color:#0b1220}
+  .hint{font-size:12px;color:var(--muted);margin:10px 0 0;line-height:1.6}
+  .hint.warn{color:var(--warn)}
+  .stage{background:#0a1120;border:1px solid var(--line);border-radius:12px;overflow:hidden;aspect-ratio:16/9}
+  .stage svg{display:block;width:100%;height:100%}
+  .team{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+  .team:last-child{margin-bottom:0}
+  .team-name{display:flex;align-items:center;gap:10px}
+  .team-name label{flex:0 0 46px;font-size:13px;color:var(--muted)}
+  .team-name input{min-height:46px;font-weight:700;letter-spacing:.5px}
+  .score-line{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px}
+  .step{width:60px;height:60px;flex:none;border-radius:16px;background:#243552;border:1px solid #38496a;
+        font-size:30px;font-weight:700;line-height:1;color:var(--text)}
+  .score{font:700 34px/1 Consolas,Menlo,monospace;min-width:74px;text-align:center;color:#fff}
+  .unit{font-size:13px;color:var(--muted)}
+  .inline{display:flex;align-items:center;justify-content:center;gap:12px;margin:4px 0 12px}
+  .inline .step{width:54px;height:54px;font-size:26px}
+  .inline output{font:700 28px/1 Consolas,Menlo,monospace;min-width:64px;text-align:center}
+  .seg{display:flex;gap:8px}
+  .seg .btn{flex:1;min-height:52px}
+  .count-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .count-row:last-child{margin-bottom:0}
+  .count-label{flex:0 0 66px;font-size:13px;color:var(--muted)}
+  .dots{display:flex;gap:8px;flex:1}
+  .dot{flex:1;min-width:0;min-height:56px;border-radius:16px;background:var(--card2);
+       border:1px solid var(--line);font:700 20px/1 Consolas,Menlo,monospace;color:var(--muted)}
+  .dot.on{background:var(--white);border-color:var(--white);color:#0b1220;box-shadow:0 0 0 3px rgba(255,255,255,.12)}
+  .bases{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .base{min-height:76px;border-radius:14px;background:var(--card2);border:1px solid var(--line);
+        font-size:13px;color:var(--muted);padding:8px 4px}
+  .base i{display:block;width:22px;height:22px;margin:0 auto 6px;transform:rotate(45deg);
+          border:2px solid #7c8aa5;border-radius:3px;background:transparent}
+  .base.on{color:#fff;border-color:rgba(255,255,255,.5)}
+  .base.on i{background:#fff;border-color:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.14)}
+  .switch{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin-top:12px}
+  .switch input{width:22px;height:22px;min-height:0;padding:0;accent-color:var(--brand)}
+  details{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+  summary{font-size:13px;color:var(--muted);min-height:40px;display:flex;align-items:center}
+  .bottombar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(11,18,32,.97);
+             border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+             display:grid;grid-template-columns:repeat(3,1fr);gap:8px;backdrop-filter:blur(8px)}
+  .bottombar button{min-height:50px;border-radius:12px;background:var(--card2);border:1px solid var(--line);
+                    font-size:13px;font-weight:600;color:var(--text);padding:6px 4px}
+  .bottombar button:first-child{background:var(--brand2);border-color:var(--brand2);color:#fff}
+  #toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);
+         z-index:30;max-width:90vw;background:#243552;border:1px solid #4a6086;color:#fff;
+         border-radius:12px;padding:10px 16px;font-size:13px;line-height:1.5;opacity:0;
+         pointer-events:none;transition:opacity .2s ease;text-align:center}
+  #toast.show{opacity:1}
+  .credit{font-size:11.5px;color:var(--muted);text-align:center;line-height:1.8;margin:16px 0 4px}
+  .credit a{color:#8ab4ff;text-decoration:none}
+  #controlArea.locked-ui{opacity:.55}
+  @media (min-width:700px){
+    .app{max-width:900px}
+    main{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+    .card{margin-bottom:0}
+    .preview-card{grid-column:1 / -1}
+    #roomCard{grid-column:1 / -1}
+    #controlArea{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+    .bottombar{left:50%;transform:translateX(-50%);width:900px}
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brand"><span>棒球计分 · 手机控制</span><span class="tag" id="roleTag">未连接</span></div>
+    <div class="link off" id="linkInfo">未连接 · 选择或输入房间号后加入</div>
+  </header>
+
+  <main>
+    <section class="card preview-card">
+      <div class="card-title">记分条实时预览 <span class="unit" id="roomLabel">未加入房间</span></div>
+      <div class="stage"><svg id="preview" viewBox="0 0 1000 562.5" preserveAspectRatio="xMidYMid meet"></svg></div>
+    </section>
+
+    <section class="card" id="roomCard">
+      <div class="card-title">① 加入房间 <button class="mini" data-act="refresh" id="btnRefreshRooms">刷新房间</button></div>
+      <label class="lbl" for="roomInput">房间号（4–12 位字母 / 数字，留空自动新建）</label>
+      <div class="input-row">
+        <input id="roomInput" type="text" inputmode="text" autocomplete="off" autocapitalize="characters"
+               spellcheck="false" maxlength="12" placeholder="例如 ABC123">
+        <button class="mini" data-act="random">随机</button>
+      </div>
+      <div class="lbl">当前在线房间（点一下直接加入）</div>
+      <div class="chips" id="roomChips"><span class="empty">正在读取房间列表…</span></div>
+      <label class="lbl" for="keyInput">控制密钥（留空＝只读观看；填密钥才能改比分）</label>
+      <div class="input-row">
+        <input id="keyInput" type="password" autocomplete="off" autocapitalize="none" spellcheck="false"
+               placeholder="从桌面控制器复制">
+        <button class="mini" data-act="toggleKey" id="btnToggleKey">显示</button>
+      </div>
+      <div class="btn-grid two">
+        <button class="btn primary" data-act="join" id="btnJoin">加入房间</button>
+        <button class="btn ghost" data-act="leave" id="btnLeave">断开</button>
+      </div>
+      <label class="switch"><input type="checkbox" id="vibrate"> 点击时轻微振动反馈</label>
+      <details>
+        <summary>高级：中继地址</summary>
+        <label class="lbl" for="serverInput">一般无需修改；从线上服务打开时自动用当前站点</label>
+        <input id="serverInput" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://…">
+      </details>
+      <p class="hint" id="roomHint">房间号由服务端绑定，不同房间互不干扰。只读观看不需要密钥；要控制已有房间，请在桌面控制器复制控制密钥后填入。</p>
+    </section>
+
+    <div class="ctl-only" id="controlArea">
+      <section class="card">
+        <div class="card-title">② 比分与局数</div>
+        <div class="team">
+          <div class="team-name"><label for="awayName">客队</label><input id="awayName" type="text" maxlength="10" spellcheck="false"></div>
+          <div class="score-line">
+            <button class="step" data-act="score" data-field="awayScore" data-delta="-1" aria-label="客队减一分">−</button>
+            <output class="score" id="awayScore">0</output>
+            <button class="step" data-act="score" data-field="awayScore" data-delta="1" aria-label="客队加一分">+</button>
+            <span class="unit">分</span>
+          </div>
+        </div>
+        <div class="team">
+          <div class="team-name"><label for="homeName">主队</label><input id="homeName" type="text" maxlength="10" spellcheck="false"></div>
+          <div class="score-line">
+            <button class="step" data-act="score" data-field="homeScore" data-delta="-1" aria-label="主队减一分">−</button>
+            <output class="score" id="homeScore">0</output>
+            <button class="step" data-act="score" data-field="homeScore" data-delta="1" aria-label="主队加一分">+</button>
+            <span class="unit">分</span>
+          </div>
+        </div>
+        <div class="inline">
+          <button class="step" data-act="inning" data-delta="-1" aria-label="局数减一">−</button>
+          <output id="inningVal">1</output>
+          <button class="step" data-act="inning" data-delta="1" aria-label="局数加一">+</button>
+          <span class="unit">局</span>
+        </div>
+        <div class="seg" id="halfSeg">
+          <button class="btn" data-act="half" data-half="top">上半局 ▲</button>
+          <button class="btn" data-act="half" data-half="bottom">下半局 ▼</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">③ 球数 / 出局 / 垒包</div>
+        <div class="count-row"><span class="count-label">B 坏球</span><div class="dots" id="ballDots"></div></div>
+        <div class="count-row"><span class="count-label">S 好球</span><div class="dots" id="strikeDots"></div></div>
+        <div class="count-row"><span class="count-label">出局</span><div class="dots" id="outDots"></div></div>
+        <div class="bases" id="bases" style="margin-top:12px">
+          <button class="base" data-act="base" data-field="b1"><i></i>一垒</button>
+          <button class="base" data-act="base" data-field="b2"><i></i>二垒</button>
+          <button class="base" data-act="base" data-field="b3"><i></i>三垒</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">④ 一键打点</div>
+        <div class="btn-grid two">
+          <button class="btn" data-act="quick" data-kind="ball1">坏球 +1</button>
+          <button class="btn" data-act="quick" data-kind="strike1">好球 +1</button>
+          <button class="btn" data-act="quick" data-kind="out1">出局 +1</button>
+          <button class="btn" data-act="quick" data-kind="clearCount">清空球数</button>
+          <button class="btn" data-act="quick" data-kind="clearBases">清空垒包</button>
+          <button class="btn warn" data-act="quick" data-kind="nextHalf">换半局／重置</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">⑤ 视频时间同步 <span class="unit" id="tVal">00:00</span></div>
+        <div class="btn-grid three">
+          <button class="btn" data-act="time" data-delta="-5">−5 秒</button>
+          <button class="btn" data-act="time" data-delta="0">同步时间</button>
+          <button class="btn" data-act="time" data-delta="5">+5 秒</button>
+        </div>
+        <p class="hint">叠加层勾选「跟随控制器时间」时才会跟随这里的秒数。</p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="bottombar">
+    <button data-act="syncNow">立即同步状态</button>
+    <button data-act="copyOverlay">复制叠加层地址</button>
+    <button data-act="copyMobile">复制本页地址</button>
+  </footer>
+  <p class="credit">项目作者 狗王IB · <a href="https://space.bilibili.com/150585" target="_blank" rel="noopener noreferrer">B 站主页</a> · <a href="https://github.com/2BSB/baseball-scorebug-bas/issues" target="_blank" rel="noopener noreferrer">GitHub 留言</a> / B 站后台私信反馈</p>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="scorebug-generator.js"></script>
+<script src="relay-client.js"></script>
+<script>
+(function(){
+  'use strict';
+  var G = window.ScorebugBAS, R = window.ScorebugRelay;
+  var $ = function(id){ return document.getElementById(id); };
+  var q = new URLSearchParams(location.search);
+  var parsed = q.get('relay') ? R.splitServer(q.get('relay')) : { base:'', ticket:'' };
+  var sameOrigin = /^https?:$/.test(location.protocol) ? location.origin : '';
+  var server = parsed.base || sameOrigin;
+  var ticket = parsed.ticket || R.pageTicket();
+  var room = R.normRoom(q.get('room'));
+  var keyValue = q.get('key') || '';
+  var readOnly = true, relay = null, stateTimer = null, syncTimer = null;
+  var presenceText = '', lastLocalEdit = 0, toastTimer = null, tSec = 0;
+
+  $('serverInput').value = server;
+  $('roomInput').value = room;
+  $('keyInput').value = keyValue;
+
+  var payload = {
+    room: room,
+    state: Object.assign({}, G.DEFAULT_STATE),
+    events: [],
+    options: Object.assign({}, G.DEFAULT_OPTIONS),
+    duration: 600,
+    t: 0
+  };
+
+  function ticketUrl(u){
+    if (!ticket) return u;
+    return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'sharecode=' + encodeURIComponent(ticket);
+  }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
+  function fmt(t){
+    t = Math.max(0, Math.floor(t));
+    var h = Math.floor(t / 3600), m = Math.floor(t / 60) % 60, s = t % 60;
+    var p = function(v){ return ('0' + v).slice(-2); };
+    return (h ? p(h) + ':' : '') + p(m) + ':' + p(s);
+  }
+  function toast(msg, warn){
+    var el = $('toast');
+    el.textContent = msg;
+    el.style.borderColor = warn ? '#ffbd66' : '#4a6086';
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2600);
+  }
+  function buzz(){ try { if ($('vibrate').checked && navigator.vibrate) navigator.vibrate(8); } catch(e){} }
+  function randomRoom(){
+    var a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', s = '';
+    try {
+      var b = new Uint8Array(6); (window.crypto || window.msCrypto).getRandomValues(b);
+      for (var i = 0; i < 6; i++) s += a[b[i] % a.length];
+    } catch(e){ for (var j = 0; j < 6; j++) s += a[Math.floor(Math.random() * a.length)]; }
+    return s;
+  }
+
+  /* ---------- 渲染：所有控件都由同一份 state 驱动 ---------- */
+  function setInput(id, v){
+    var el = $(id);
+    if (document.activeElement !== el) el.value = v;
+  }
+  function markGroup(container, attr, value){
+    Array.prototype.forEach.call(container.querySelectorAll('button[' + attr + ']'), function(b){
+      var on = b.getAttribute(attr) === String(value);
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  function buildDots(){
+    var specs = [ ['ballDots', 'balls', 3, 'act', 'balls'],
+                  ['strikeDots', 'strikes', 2, 'act', 'strikes'],
+                  ['outDots', 'outs', 2, 'act', 'outs'] ];
+    specs.forEach(function(sp){
+      var box = $(sp[0]), html = '';
+      for (var i = 0; i <= sp[2]; i++)
+        html += '<button class="dot" data-act="' + sp[4] + '" data-n="' + i + '" aria-label="' + sp[1] + '设为' + i + '">' + i + '</button>';
+      box.innerHTML = html;
+    });
+  }
+  function renderAll(){
+    var s = payload.state;
+    setInput('awayName', s.awayName);
+    setInput('homeName', s.homeName);
+    $('awayScore').textContent = s.awayScore;
+    $('homeScore').textContent = s.homeScore;
+    $('inningVal').textContent = s.inning;
+    markGroup($('halfSeg'), 'data-half', s.half);
+    markGroup($('ballDots'), 'data-n', s.balls);
+    markGroup($('strikeDots'), 'data-n', s.strikes);
+    markGroup($('outDots'), 'data-n', s.outs);
+    Array.prototype.forEach.call($('bases').querySelectorAll('button'), function(b){
+      var on = !!s[b.getAttribute('data-field')];
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    tSec = Math.max(0, Number(payload.t) || 0);
+    $('tVal').textContent = fmt(tSec);
+    $('roomLabel').textContent = room ? '房间 ' + room : '未加入房间';
+    try {
+      var fit = G.worstFitState(payload.state, payload.events);
+      $('preview').innerHTML = G.renderSVG(payload.state, payload.options, { fieldBg:false, fitState: fit });
+    } catch(e){ toast('预览渲染失败：' + e.message, true); }
+  }
+  function setControlEnabled(on){
+    $('controlArea').classList.toggle('locked-ui', !on);
+    Array.prototype.forEach.call($('controlArea').querySelectorAll('button'), function(b){ b.disabled = !on; });
+  }
+  function setLink(s){
+    var t = s.transport === 'ws' ? 'WebSocket' :
+            (s.transport === 'poll' ? 'HTTP 长轮询' : (s.transport === 'reconnecting' ? '重连中' : '离线'));
+    var el = $('linkInfo'), tag = $('roleTag');
+    el.className = 'link ' + (s.connected ? 'on' : 'off');
+    el.textContent = (s.connected ? '已连接' : '未连接') + ' · 房间 ' + (s.room || '—') + ' · ' + t +
+      (presenceText ? ' · ' + presenceText : '') + (s.detail ? ' · ' + s.detail : '');
+    tag.className = 'tag ' + (s.connected ? (readOnly ? 'read' : 'on') : '');
+    tag.textContent = s.connected ? (readOnly ? '只读观看' : '可控制') : '未连接';
+    if (s.detail && s.detail.indexOf('控制密钥') >= 0)
+      toast(s.detail + '：请核对密钥，或留空以只读观看', true);
+  }
+  function applyRemote(p, quiet){
+    if (!p || typeof p !== 'object') return;
+    payload = {
+      room: room,
+      state: Object.assign({}, G.DEFAULT_STATE, p.state || {}),
+      events: Object.prototype.toString.call(p.events) === '[object Array]' ? p.events : [],
+      options: Object.assign({}, G.DEFAULT_OPTIONS, p.options || {}),
+      duration: Math.max(1, Number(p.duration) || 600),
+      t: Math.max(0, Number(p.t) || 0)
+    };
+    renderAll();
+    if (!quiet) toast('已同步房间 ' + room + ' 的最新比分');
+  }
+
+  /* ---------- 推送 ---------- */
+  function pushState(){
+    if (!relay || readOnly) return;
+    lastLocalEdit = Date.now();
+    payload.room = room; payload.t = tSec;
+    if (stateTimer) return;
+    stateTimer = setTimeout(function(){
+      stateTimer = null;
+      if (relay) relay.send({ type:'state', payload: payload });
+    }, 120);
+  }
+  function pushSync(){
+    if (!relay || readOnly) return;
+    if (syncTimer) return;
+    syncTimer = setTimeout(function(){
+      syncTimer = null;
+      if (relay) relay.send({ type:'sync', t: tSec });
+    }, 160);
+  }
+  function pushNow(){
+    if (!relay || readOnly){ toast('尚未以控制身份加入房间', true); return; }
+    if (stateTimer){ clearTimeout(stateTimer); stateTimer = null; }
+    payload.room = room; payload.t = tSec;
+    relay.send({ type:'state', payload: payload });
+    relay.send({ type:'sync', t: tSec });
+    toast('已向房间 ' + room + ' 推送当前比分与时间');
+  }
+  function changed(){ renderAll(); pushState(); }
+
+  /* ---------- 房间列表 / 最近状态 ---------- */
+  function renderChips(list){
+    var box = $('roomChips');
+    if (!list || !list.length){
+      box.innerHTML = '<span class="empty">暂时没有在线房间；可以自己输入房间号新建。</span>';
+      return;
+    }
+    box.innerHTML = list.map(function(r){
+      return '<button class="chip' + (r.id === room ? ' on' : '') + (r.locked ? ' locked' : '') +
+        '" data-act="chip" data-room="' + esc(r.id) + '" data-locked="' + (r.locked ? 1 : 0) + '">' +
+        esc(r.id) + '<small>' + (r.locked ? '需控制密钥 · ' : '开放控制 · ') +
+        '控制 ' + r.controllers + ' / 观看 ' + r.viewers + '</small></button>';
+    }).join('');
+  }
+  function loadRooms(){
+    if (!server){ $('roomChips').innerHTML = '<span class="empty">请填写中继地址后再刷新房间</span>'; return; }
+    fetch(ticketUrl(server + '/api/rooms'), { cache:'no-store' })
+      .then(function(r){ return r.json(); })
+      .then(function(j){ renderChips(j.rooms || []); })
+      .catch(function(e){ $('roomChips').innerHTML = '<span class="empty">房间列表读取失败：' + esc(e.message) + '</span>'; });
+  }
+  function loadRoomState(id){
+    if (!server) return;
+    fetch(ticketUrl(server + '/api/state?room=' + encodeURIComponent(id)), { cache:'no-store' })
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (!j || !j.state) return;
+        if (j.state.room && R.normRoom(j.state.room) !== id) return;
+        applyRemote(j.state, true);
+      })
+      .catch(function(){});
+  }
+
+  /* ---------- 加入 / 断开 ---------- */
+  function join(){
+    server = R.normServer($('serverInput').value) || server;
+    if (!server){ toast('请填写中继地址（从线上服务打开时会自动填好）', true); return; }
+    var rm = R.normRoom($('roomInput').value) || randomRoom();
+    if (rm.length < 4){ toast('房间号至少 4 位，只能用字母和数字', true); return; }
+    room = rm; $('roomInput').value = rm;
+    keyValue = $('keyInput').value.trim();
+    readOnly = !keyValue;
+    if (relay){ try { relay.close(); } catch(e){} relay = null; }
+    presenceText = '';
+    relay = R.create({
+      server: server, room: room, role: readOnly ? 'viewer' : 'controller',
+      key: keyValue, ticket: ticket,
+      onStatus: setLink,
+      onMessage: function(m){
+        if (m.type === 'presence'){
+          presenceText = '控制器 ' + m.controllers + ' / 观看 ' + m.viewers;
+          if (relay) setLink(relay.status());
+        } else if (m.type === 'state' && m.payload){
+          if (Date.now() - lastLocalEdit > 600) applyRemote(m.payload, true);
+        } else if (m.type === 'error'){
+          toast('中继返回：' + (m.message || m.error || '错误'), true);
+        }
+      }
+    });
+    setControlEnabled(!readOnly);
+    relay.connect();
+    loadRoomState(room);
+    pushState(); pushSync();
+    toast(readOnly ? '已只读加入房间 ' + room + '，填控制密钥后重新加入即可控制'
+                   : '已加入房间 ' + room + '，现在可以改比分');
+    loadRooms();
+  }
+  function leave(){
+    if (relay){ try { relay.close(); } catch(e){} relay = null; }
+    presenceText = '';
+    readOnly = true;
+    setControlEnabled(true);   /* 断开后仍可本地预编辑，只是不再推送 */
+    setLink({ connected:false, transport:'offline', room:room, detail:'' });
+    toast('已断开房间；仍可在本地调整，加入后才会推送');
+  }
+
+  /* ---------- 地址复制 ---------- */
+  function overlayUrl(){
+    var page = server ? server + '/live-overlay.html' : 'live-overlay.html';
+    var u = page + '?room=' + encodeURIComponent(room) + '&panel=0';
+    if (ticket) u += '&sharecode=' + encodeURIComponent(ticket);
+    if (server && server !== location.origin) u += '&relay=' + encodeURIComponent(server);
+    return u;
+  }
+  function mobileUrl(){
+    var u = (server || location.origin) + '/mobile-control.html?room=' + encodeURIComponent(room);
+    if (keyValue) u += '&key=' + encodeURIComponent(keyValue);
+    if (ticket) u += '&sharecode=' + encodeURIComponent(ticket);
+    return u;
+  }
+  function copyText(text, msg, warn){
+    var done = function(){ toast(msg, warn); };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, function(){ fallbackCopy(text, done); });
+    } else fallbackCopy(text, done);
+  }
+  function fallbackCopy(text, done){
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px;opacity:0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); done(); }
+    catch(e){ toast('复制失败，请手动长按选择地址', true); }
+    ta.remove();
+  }
+
+  /* ---------- 手指操作：事件委托，全部按钮 ≥44px ---------- */
+  document.addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('button') : null;
+    if (!b || b.disabled) return;
+    var act = b.getAttribute('data-act');
+    if (!act) return;
+    buzz();
+    var s = payload.state, n;
+    switch (act){
+      case 'refresh': loadRooms(); toast('正在刷新房间列表'); break;
+      case 'random': $('roomInput').value = randomRoom(); toast('已生成新房间号，点「加入房间」即可创建'); break;
+      case 'toggleKey':
+        var ki = $('keyInput');
+        ki.type = ki.type === 'password' ? 'text' : 'password';
+        $('btnToggleKey').textContent = ki.type === 'password' ? '显示' : '隐藏';
+        break;
+      case 'chip':
+        $('roomInput').value = b.getAttribute('data-room');
+        room = R.normRoom(b.getAttribute('data-room'));
+        if (b.getAttribute('data-locked') === '1' && !$('keyInput').value.trim())
+          toast('该房间已设控制密钥：将以只读观看加入；填入密钥后重新加入即可控制', true);
+        join();
+        break;
+      case 'join': join(); break;
+      case 'leave': leave(); break;
+      case 'score':
+        s[b.getAttribute('data-field')] = Math.max(0, Number(s[b.getAttribute('data-field')]) + Number(b.getAttribute('data-delta')));
+        changed(); break;
+      case 'inning':
+        s.inning = Math.max(1, Math.min(99, Number(s.inning) + Number(b.getAttribute('data-delta'))));
+        changed(); break;
+      case 'half': s.half = b.getAttribute('data-half'); changed(); break;
+      case 'balls': s.balls = Number(b.getAttribute('data-n')); changed(); break;
+      case 'strikes': s.strikes = Number(b.getAttribute('data-n')); changed(); break;
+      case 'outs': s.outs = Number(b.getAttribute('data-n')); changed(); break;
+      case 'base':
+        n = b.getAttribute('data-field'); s[n] = s[n] ? 0 : 1; changed(); break;
+      case 'quick':
+        n = b.getAttribute('data-kind');
+        if (n === 'ball1') s.balls = Math.min(3, Number(s.balls) + 1);
+        else if (n === 'strike1') s.strikes = Math.min(2, Number(s.strikes) + 1);
+        else if (n === 'out1') s.outs = Math.min(2, Number(s.outs) + 1);
+        else if (n === 'clearCount'){ s.balls = 0; s.strikes = 0; }
+        else if (n === 'clearBases'){ s.b1 = s.b2 = s.b3 = 0; }
+        else if (n === 'nextHalf'){
+          if (s.half === 'top') s.half = 'bottom';
+          else { s.half = 'top'; s.inning = Math.max(1, Number(s.inning)) + 1; }
+          s.balls = 0; s.strikes = 0; s.outs = 0; s.b1 = s.b2 = s.b3 = 0;
+        }
+        changed(); break;
+      case 'time':
+        tSec = Math.max(0, tSec + Number(b.getAttribute('data-delta')));
+        payload.t = tSec; renderAll(); pushSync(); pushState(); break;
+      case 'syncNow': pushNow(); break;
+      case 'copyOverlay':
+        if (!room){ toast('请先加入或输入房间号', true); break; }
+        copyText(overlayUrl(), '已复制叠加层地址，粘贴到 OBS 浏览器源即可'); break;
+      case 'copyMobile':
+        copyText(mobileUrl(), keyValue ? '已复制本页地址（含密钥，只发给自己，不要公开分享）' : '已复制本页地址', !!keyValue); break;
+    }
+  }, false);
+
+  ['awayName', 'homeName'].forEach(function(id){
+    $(id).addEventListener('input', function(){
+      payload.state[id] = this.value.slice(0, 10);
+      renderAll(); pushState();
+    });
+  });
+  $('roomInput').addEventListener('input', function(){
+    this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+  });
+  $('serverInput').addEventListener('change', function(){
+    server = R.normServer(this.value) || sameOrigin;
+    this.value = server;
+    loadRooms();
+  });
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'visible') loadRooms();
+  });
+
+  buildDots();
+  renderAll();
+  setControlEnabled(true);   /* 未加入时允许先摆好比分，加入房间后再推送 */
+  loadRooms();
+  setInterval(function(){ if (document.visibilityState === 'visible') loadRooms(); }, 12000);
+  if (room) setTimeout(join, 320);   /* 从「手机控制地址」打开时自动加入，少一步操作 */
+})();
+</script>
+</body>
+</html>

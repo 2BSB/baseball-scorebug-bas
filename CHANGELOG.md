@@ -2,8 +2,24 @@
 
 项目作者：**狗王IB** · [B 站主页](https://space.bilibili.com/150585) · [GitHub 仓库](https://github.com/2BSB/baseball-scorebug-bas)
 
-> 版本号只用于区分功能批次，不代表 GitHub Release / Tag。所有版本均为同一个单文件网页工具的连续迭代。
+> 版本号只用于区分功能批次；v2.6 起每个重要批次会同步发布对应的 GitHub Release / Tag。所有版本均为同一个单文件网页工具的连续迭代。
 > 遇到使用问题，欢迎在 [GitHub Issues](https://github.com/2BSB/baseball-scorebug-bas/issues) 留言，或通过 B 站后台私信作者。
+
+---
+
+## v2.7 · 2026-11-10 · 移动端控制页与全渠道发布
+
+**本次发布**：GitHub `main` 已同步并发布 [Release v2.7](https://github.com/2BSB/baseball-scorebug-bas/releases/tag/v2.7)，线上应用已用同一 appId 重新部署（链接与 `sharecode` 不变），桌面「本地增强包.zip」同步重打包。GitHub Pages 干净静态版仍不含移动端页面与云代码。
+
+
+- 新增 `mobile-control.html`（模板 `_refs/mobile_control_source.html` + 打包脚本 `bundle_mobile.js`）：手机 / 平板专用的线上叠加层控制页，由 `online-app/server.js` 提供 `/mobile-control.html` 与短地址 `/m.html`。
+- **可选加入的房间号**：新增 `/api/rooms`，列出仍有人在线的房间号、控制 / 观看人数与「是否需要密钥」标记；页面可点 chip 直接加入、手填 4–12 位房间号、点「随机」新建，或留空自动生成。页面可见时每 12 秒刷新。
+- 新增 `/api/state`：返回同房间最后一次 `state`，手机接管时不会把桌面端的时间轴与配色覆盖成空白；两个接口都不返回控制密钥或历史消息内容。
+- **控制密钥配套**：桌面控制器「① 线上直播叠加层」新增只读密钥显示、「复制密钥」与「复制手机控制地址」（含房间号 + 密钥 + `sharecode`，仅发给自己的手机、不要公开分享）；换房间会同步更新密钥。
+- **贴合手指**：39 个控件全部 ≥44px、主按钮 54–60px；比分 `−/+`、局数、B / S 球数、出局为大圆点直接点选设定，垒包为大菱形按钮；「一键打点」含坏球 / 好球 / 出局 +1、清空球数 / 垒包、换半局重置；`±5 秒` 与「同步时间」控制叠加层走时。输入框 16px 防 iOS 自动缩放、禁用双击缩放、适配刘海屏安全区、可选轻微振动；平板 ≥700px 自动两列。填密钥＝可控制，留空＝只读观看并禁用控制按钮。
+- 隐私：零外链脚本、不写 Cookie / localStorage，房间与消息仍只在服务内存；移动端页面依赖服务端 API，不进 GitHub Pages 干净静态版。
+- 验证：`_refs/verify_v27_mobile.js` 用手机视口 + 真实触摸事件端到端全部通过（房间列表、chip 加入、密钥 / 只读、状态推送、房间隔离、`/api/state` 恢复、控件尺寸、零未捕获异常）；`_refs/verify_v26_author.js` 复测无回归；`界面截图/13~15` 为手机首屏 / 全页 / 平板两列截图。
+- 发布后复测：线上 `/mobile-control.html`、`/m.html`、`/api/rooms`、`/api/state`、`/api/health` 均可访问且 `sharecode` 透传生效；不带 `sharecode` 仍返回 403；控制器首页含「复制手机控制地址」，叠加层不含作者信息与移动端入口。
 
 ---
 

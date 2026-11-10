@@ -19,6 +19,9 @@ _refs/*
 !_refs/verify_v25_cloud.js
 !_refs/verify_v25_online.js
 !_refs/verify_v26_author.js
+!_refs/mobile_control_source.html
+!_refs/verify_v27_mobile.js
+!_refs/capture_mobile.js
 
 # 依赖与系统文件
 node_modules/

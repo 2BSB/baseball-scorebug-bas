@@ -477,12 +477,14 @@
           <div class="tool-title">① 线上直播叠加层（跨设备实时控制）</div>
           <p class="hint">控制器与 OBS 浏览器源可以在不同设备。连接后本页改动按<b>房间号</b>实时推送给同房间叠加层，不同房间互不干扰。未连接时页面完全离线，也可用 URL 快照或本地文件独立运行。</p>
           <div class="ctl-row"><label>房间号</label><input type="text" id="roomId" maxlength="12" spellcheck="false"><button class="mini" id="btnNewRoom">换房间</button></div>
+          <div class="ctl-row"><label>控制密钥</label><input type="text" id="controlKeyDisplay" readonly spellcheck="false"><button class="mini" id="btnCopyControlKey">复制密钥</button></div>
           <div class="ctl-row"><label>中继地址</label><input type="text" id="relayServer" spellcheck="false" placeholder="https://… 或留空用当前站点"></div>
           <div class="ctl-row"><label>叠加层地址</label><input type="text" id="overlayLink" readonly></div>
           <div class="btn-row">
             <button class="mini primary" id="btnRelayConnect">连接</button>
             <button class="mini" id="btnRelayDisconnect" disabled>断开</button>
             <button class="mini" id="btnCopyOverlayLink">复制叠加层链接</button>
+            <button class="mini" id="btnCopyMobileLink">复制手机控制地址</button>
             <button class="mini" id="btnOverlaySync">立即同步状态</button>
             <button class="mini" id="btnOpenOverlay">本地快照打开</button>
           </div>
@@ -494,7 +496,7 @@
             <span class="hint" id="cloudStatus" style="word-break:break-all">云服务未检查</span>
           </div>
           <!-- CLOUD-UI-END -->
-          <p class="hint">OBS 浏览器源填上面的「叠加层地址」（已带 <code>?room=…&amp;panel=0</code>），宽 1920 / 高 1080、勾选透明背景。消息只在中继内存转发、不落盘；控制器另有随机控制密钥，别人知道房间号也只能观看。按 <b>H</b> 隐藏面板、<b>空格</b> 暂停、<b>←/→</b> ±5 秒。</p>
+          <p class="hint">OBS 浏览器源填上面的「叠加层地址」（已带 <code>?room=…&amp;panel=0</code>），宽 1920 / 高 1080、勾选透明背景。消息只在中继内存转发、不落盘；控制器另有随机控制密钥，别人知道房间号也只能观看。按 <b>H</b> 隐藏面板、<b>空格</b> 暂停、<b>←/→</b> ±5 秒。手机 / 平板可打开同目录 <code>mobile-control.html</code>（短地址 <code>/m.html</code>）选择房间加入；「复制手机控制地址」会带上房间号与控制密钥，只发给自己的手机，不要公开分享。</p>
         </div>
         <div class="tool-box">
           <div class="tool-title">② 本地视频烧录导出（可选格式）</div>
@@ -1035,6 +1037,8 @@
   var roomId = urlRoom || R.normRoom(roomInput.value) || randomCode(6);
   roomInput.value = roomId;
   var controlKey = randomCode(12);
+  var controlKeyInput = document.getElementById('controlKeyDisplay');
+  controlKeyInput.value = controlKey;
   var relay = null, bc = null, presenceText = '', stateTimer = null, syncTimer = null;
 
   function currentRoom(){ return R.normRoom(roomInput.value); }
@@ -1117,6 +1121,7 @@
   serverInput.addEventListener('input', function(){ updateOverlayLink(); });
   document.getElementById('btnNewRoom').addEventListener('click', function(){
     roomId = randomCode(6); roomInput.value = roomId; controlKey = randomCode(12);
+    controlKeyInput.value = controlKey;
     disconnectRelay(); openBroadcast(); updateOverlayLink();
     setLocalStatus('已换新房间 ' + roomId + '，需要重新连接；旧房间的叠加层不会收到本页消息。');
   });
@@ -1134,6 +1139,25 @@
     catch(e){ setLocalStatus('复制失败，请手动选中「叠加层地址」输入框复制。', true); }
     ta.remove();
   }
+  document.getElementById('btnCopyControlKey').addEventListener('click', function(){
+    copyText(controlKey, '已复制控制密钥；在手机控制页填入即可接管本房间（请勿公开分享）。');
+  });
+  function mobileControlUrl(){
+    var base = serverBase();
+    var page = base ? base + '/mobile-control.html' : 'mobile-control.html';
+    var q = '?room=' + encodeURIComponent(currentRoom()) + '&key=' + encodeURIComponent(controlKey);
+    var t = relayTicket();
+    if (t) q += '&sharecode=' + encodeURIComponent(t);
+    if (base && base !== location.origin) q += '&relay=' + encodeURIComponent(base);
+    return page + q;
+  }
+  document.getElementById('btnCopyMobileLink').addEventListener('click', function(){
+    if (!serverBase()){
+      setLocalStatus('请先填写线上中继地址，手机控制页需要由该服务提供；GitHub Pages 静态版不含此页面。', true);
+      return;
+    }
+    copyText(mobileControlUrl(), '已复制手机控制地址（含控制密钥，只发给自己的手机，不要公开分享）。');
+  });
   document.getElementById('btnCopyOverlayLink').addEventListener('click', function(){
     updateOverlayLink();
     copyText(linkInput.value, '已复制叠加层地址；粘贴到 OBS 浏览器源即可，房间里只有你能控制。');
